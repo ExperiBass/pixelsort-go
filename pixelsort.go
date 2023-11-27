@@ -110,6 +110,17 @@ func main() {
 				Value: false,
 				Usage: "reverse sort, or not.",
 			},
+			&cli.Float64Flag{
+				Name:  "randomness",
+				Value: 1.0,
+				Usage: "used to determine which [row]s to skip and how wild [wave] edges should be",
+				Action: func(ctx *cli.Context, v float64) error {
+					if v < 0.0 || v > 1.0 {
+						return fmt.Errorf("randomness is out of range [0.0-1.0]")
+					}
+					return nil
+				},
+			},
 		},
 		Name:  "pixelsort_go",
 		Usage: "Visual decimation.",
@@ -122,6 +133,7 @@ func main() {
 			shared.Config.Thresholds.Lower = float32(ctx.Float64("lower_threshold"))
 			shared.Config.Thresholds.Upper = float32(ctx.Float64("upper_threshold"))
 			shared.Config.Reverse = ctx.Bool("reverse")
+			shared.Config.Randomness = float32(ctx.Float64("randomness"))
 
 			/// lets make it noisy
 			infoString := fmt.Sprintf("Sorting %d images with a config of %+v.", len(inputs), shared.Config)
@@ -146,7 +158,7 @@ func main() {
 				println(fmt.Sprintf("Sorting image %d (%q -> %q)...", i+1, shared.Config.Input, shared.Config.Out))
 				err := sortingTime()
 				if err != nil {
-					cli.Exit(fmt.Sprintf("Error occured during sort of image %d (%q): %q", i, shared.Config.Input, err), 1)
+					cli.Exit(fmt.Sprintf("Error occured during sort of image %d (%q): %q", i+1, shared.Config.Input, err), 1)
 				}
 			}
 			return nil

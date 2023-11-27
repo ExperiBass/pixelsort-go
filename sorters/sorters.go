@@ -1,9 +1,7 @@
 package sorters
 
 import (
-	"crypto/rand"
 	"math"
-	"math/big"
 	mathRand "math/rand"
 	"pixelsort_go/comparators"
 	"pixelsort_go/shared"
@@ -35,6 +33,9 @@ func Shuffle(interval []types.PixelWithMask) {
 }
 
 func Row(interval []types.PixelWithMask) {
+	if mathRand.Float32() < shared.Config.Randomness {
+		return
+	}
 	commonSort([]types.Stretch{{Start: 0, End: len(interval)}}, interval)
 }
 
@@ -48,9 +49,8 @@ func Random(interval []types.PixelWithMask) {
 		if j >= intervalLength {
 			break
 		}
-		stretchLengthBig, _ := rand.Int(rand.Reader, big.NewInt(int64(section_length)))
 		// so many broken limbs, call me the cast fox
-		stretchLength := max(int(stretchLengthBig.Int64()), int(math.Round(float64(section_length/8))))
+		stretchLength := max(mathRand.Int(), int(math.Floor(float64(float32(section_length)*shared.Config.Randomness))))
 		endIdx := min(j+stretchLength, intervalLength)
 		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
 		j += stretchLength
@@ -86,7 +86,7 @@ func Wave(interval []types.PixelWithMask) {
 			break
 		}
 		randFloat := mathRand.Float64() * 100
-		randMin := min(randFloat, math.Floor(float64(sectionLength/3)))
+		randMin := min(randFloat, math.Floor(float64(float32(sectionLength)*shared.Config.Randomness)))
 
 		stretchLength := sectionLength + randBetween(int(randFloat), int(-randMin))
 
@@ -125,7 +125,6 @@ func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
 		}
 
 		slices.SortStableFunc(pixels, comparators.ComparatorFunctionMappings[shared.Config.Comparator])
-		//Shuffle(pixels)
 
 		if shared.Config.Reverse {
 			for i, j := 0, len(pixels)-1; i < j; i, j = i+1, j-1 {
