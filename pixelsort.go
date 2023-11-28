@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/remeh/sizedwaitgroup"
 	"github.com/urfave/cli/v2"
 )
 
@@ -65,7 +66,7 @@ func main() {
 			},
 			&cli.Float64Flag{
 				Name:    "lower_threshold",
-				Value:   0.1,
+				Value:   0.0,
 				Aliases: []string{"l"},
 				Usage:   "pixels below this `threshold` won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
@@ -77,7 +78,7 @@ func main() {
 			},
 			&cli.Float64Flag{
 				Name:    "upper_threshold",
-				Value:   0.9,
+				Value:   1.0,
 				Aliases: []string{"u"},
 				Usage:   "pixels above this `threshold` won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
@@ -89,7 +90,7 @@ func main() {
 			},
 			&cli.IntFlag{
 				Name:    "quality",
-				Value:   60,
+				Value:   100,
 				Aliases: []string{"q"},
 				Usage:   "(jpeg only) the `quality` of the output image.",
 				Action: func(ctx *cli.Context, v int) error {
@@ -121,14 +122,22 @@ func main() {
 					return nil
 				},
 			},
+			&cli.IntFlag{
+				Name:    "threads",
+				Value:   1,
+				Aliases: []string{"t"},
+				Usage:   "Sort images in parallel across `N` threads",
+			},
 		},
 		Name:  "pixelsort_go",
 		Usage: "Visual decimation.",
 		Action: func(ctx *cli.Context) error {
 			inputs := ctx.StringSlice("input")
+			threadCount := ctx.Int("threads")
 			shared.Config.Mask = ctx.String("mask")
 			shared.Config.Sorter = ctx.String("sorter")
 			shared.Config.Comparator = ctx.String("comparator")
+			shared.Config.Quality = ctx.Int("quality")
 			shared.Config.SectionLength = ctx.Int("section_length")
 			shared.Config.Thresholds.Lower = float32(ctx.Float64("lower_threshold"))
 			shared.Config.Thresholds.Upper = float32(ctx.Float64("upper_threshold"))
@@ -139,9 +148,7 @@ func main() {
 			infoString := fmt.Sprintf("Sorting %d images with a config of %+v.", len(inputs), shared.Config)
 			println(infoString)
 			if len(inputs) == 1 {
-				shared.Config.Input = inputs[0]
-				shared.Config.Out = ctx.String(("out"))
-				return sortingTime()
+				return sortingTime(inputs[0], ctx.String(("out")), shared.Config.Mask)
 			}
 
 			// multiple imgs
@@ -149,18 +156,27 @@ func main() {
 			slices.SortFunc(inputs, func(a, b string) int {
 				return strings.Compare(a, b)
 			})
+			inputLen := len(inputs)
+			// create workgroup
+			wg := sizedwaitgroup.New(threadCount)
 
 			splitFileName := strings.Split(inputs[0], ".")
 			fileSuffix := splitFileName[len(splitFileName)-1]
-			for i := 0; i < len(inputs); i++ {
-				shared.Config.Input = inputs[i]
-				shared.Config.Out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
-				println(fmt.Sprintf("Sorting image %d (%q -> %q)...", i+1, shared.Config.Input, shared.Config.Out))
-				err := sortingTime()
-				if err != nil {
-					cli.Exit(fmt.Sprintf("Error occured during sort of image %d (%q): %q", i+1, shared.Config.Input, err), 1)
-				}
+			for i := 0; i < inputLen; i++ {
+				wg.Add()
+				go func(i int) {
+					defer wg.Done()
+
+					in := inputs[i]
+					out := fmt.Sprintf("frame%04d.%s", i, fileSuffix)
+					println(fmt.Sprintf("Sorting image %d (%q -> %q)...", i+1, in, out))
+					err := sortingTime(in, out, shared.Config.Mask)
+					if err != nil {
+						cli.Exit(fmt.Sprintf("Error occured during sort of image %d (%q): %q", i+1, in, err), 1)
+					}
+				}(i)
 			}
+			wg.Wait()
 			return nil
 		},
 	}
@@ -169,8 +185,8 @@ func main() {
 	}
 }
 
-func sortingTime() error {
-	file, err := os.Open(shared.Config.Input)
+func sortingTime(input, output, maskpath string) error {
+	file, err := os.Open(input)
 	if err != nil {
 		cli.Exit("Input image could not be opened", 1)
 	}
@@ -189,8 +205,9 @@ func sortingTime() error {
 	draw.Draw(img, img.Bounds(), rawImg, b.Min, draw.Src)
 	rawImg = nil
 
-	if shared.Config.Mask != "" {
-		maskFile, err := os.Open(shared.Config.Mask)
+	// TODO: figure out how to load mask once
+	if maskpath != "" {
+		maskFile, err := os.Open(maskpath)
 
 		if err != nil {
 			cli.Exit("Mask image could not be opened", 1)
@@ -245,11 +262,11 @@ func sortingTime() error {
 		}
 	}
 
-	f, err := os.Create(shared.Config.Out)
+	f, err := os.Create(output)
 	if err != nil {
 		cli.Exit("Could not create output file", 1)
 	}
-	if strings.HasSuffix(shared.Config.Input, "jpg") || strings.HasSuffix(shared.Config.Input, "jpeg") {
+	if strings.HasSuffix(input, "jpg") || strings.HasSuffix(input, "jpeg") {
 		options := jpeg.Options{
 			Quality: shared.Config.Quality,
 		}
