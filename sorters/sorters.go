@@ -27,15 +27,18 @@ func Sort(row []types.PixelWithMask) {
 
 // sorters
 func Shuffle(interval []types.PixelWithMask) {
+	if mathRand.Float32() > shared.Config.Randomness {
+		return
+	}
 	mathRand.Shuffle(len(interval), func(i, j int) {
 		interval[i], interval[j] = interval[j], interval[i]
 	})
 }
 
 func Row(interval []types.PixelWithMask) {
-	/*if mathRand.Float32() > shared.Config.Randomness {
+	if mathRand.Float32() > shared.Config.Randomness {
 		return
-	}*/
+	}
 	commonSort([]types.Stretch{{Start: 0, End: len(interval)}}, interval)
 }
 
