@@ -278,13 +278,13 @@ func readDirImages(input string) ([]string, error) {
 func sortingTime(input, output, maskpath string) error {
 	file, err := os.Open(input)
 	if err != nil {
-		return cli.Exit("Input image could not be opened", 1)
+		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be opened", input), 1)
 	}
 	defer file.Close()
 
 	rawImg, _, err := image.Decode(file)
 	if err != nil {
-		return cli.Exit("Input image could not be decoded", 1)
+		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be decoded", input), 1)
 	}
 
 	// convert to rgba
@@ -300,12 +300,12 @@ func sortingTime(input, output, maskpath string) error {
 		maskFile, err := os.Open(maskpath)
 
 		if err != nil {
-			return cli.Exit("Mask image could not be opened", 1)
+			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be opened", maskpath), 1)
 		}
 		defer maskFile.Close()
 		rawMask, _, err := image.Decode(maskFile)
 		if err != nil {
-			return cli.Exit("Mask image could not be decoded", 1)
+			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be decoded", maskpath), 1)
 		}
 		draw.Draw(mask, mask.Bounds(), rawMask, b.Min, draw.Src)
 		rawMask = nil
