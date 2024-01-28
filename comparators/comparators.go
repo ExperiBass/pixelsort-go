@@ -74,7 +74,6 @@ func Darkness(a, b types.PixelWithMask) int {
 // MAYBE: arbitrary thresholds (ex: green comparison with blue threhsolds)
 func checkPixelThresholds(val float32) bool {
 	// skip if beyond thresholds
-	//println(val, (shared.Config.Thresholds.Lower * 255), (shared.Config.Thresholds.Upper * 255))
 	if val < (shared.Config.Thresholds.Lower*255) || val > (shared.Config.Thresholds.Upper*255) {
 		return true
 	}

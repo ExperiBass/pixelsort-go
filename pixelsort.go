@@ -12,6 +12,7 @@ import (
 	"pixelsort_go/shared"
 	"pixelsort_go/sorters"
 	"pixelsort_go/types"
+	"runtime/pprof"
 	"slices"
 	"strings"
 	"time"
@@ -21,6 +22,13 @@ import (
 )
 
 func main() {
+	profileFile, err := os.Create("cpuprofile.prof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	pprof.StartCPUProfile(profileFile)
+	defer pprof.StopCPUProfile()
+
 	app := &cli.App{
 		UseShortOptionHandling: true,
 		Flags: []cli.Flag{

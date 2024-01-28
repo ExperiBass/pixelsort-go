@@ -18,10 +18,11 @@ var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
 }
 
 func Sort(row []types.PixelWithMask) {
+	sorter := SortingFunctionMappings[shared.Config.Sorter]
 	stretches := getUnmaskedStretches(row)
 	for i := 0; i < len(stretches); i++ {
 		stretch := stretches[i]
-		SortingFunctionMappings[shared.Config.Sorter](row[stretch.Start:stretch.End])
+		sorter(row[stretch.Start:stretch.End])
 	}
 }
 
@@ -139,8 +140,8 @@ func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
 				pixels[i], pixels[j] = pixels[j], pixels[i]
 			}
 		}
-
-		slices.SortStableFunc(pixels, comparators.ComparatorFunctionMappings[shared.Config.Comparator])
+		comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
+		slices.SortStableFunc(pixels, comparator)
 
 		if shared.Config.Reverse {
 			// /unflip
