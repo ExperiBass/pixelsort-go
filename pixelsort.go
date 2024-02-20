@@ -275,10 +275,7 @@ func readDirImages(input string) ([]string, error) {
 	}
 	// remove empty elms
 	inputs = slices.DeleteFunc(inputs, func(s string) bool {
-		if len(strings.TrimSpace(s)) == 0 {
-			return true
-		}
-		return false
+		return len(strings.TrimSpace(s)) == 0
 	})
 	return inputs, nil
 }
