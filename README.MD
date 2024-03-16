@@ -13,6 +13,12 @@ did you know webb and hubble pics are cc4?
 
 "elapsed" is time spent actually sorting  
 ```
+=> time pixelsort_go -i ~/Downloads/potm2310a.jpg -o ./benchmark
+Sorting 1 images with a config of {Sorter:row Comparator:lightness Quality:0 SectionLength:60 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
+Loading image 1 ("/home/______/Downloads/potm2310a.jpg" -> "./benchmark")...
+./benchmark Elapsed: 2.026s
+0:02.79 real 2.75 usermode 99% 106208 Kb mem
+
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -m ./webb-mask.jpg -o ./benchmark
 Sorting 1 images with a config of {Sorter:row Comparator:lightness Quality:0 SectionLength:60 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
 Loading image 1 ("/home/______/Downloads/potm2310a.jpg" -> "./benchmark")...
