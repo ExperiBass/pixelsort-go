@@ -8,26 +8,21 @@ import (
 	"image/jpeg"
 	"image/png"
 	"log"
+	"math"
 	"os"
 	"pixelsort_go/shared"
 	"pixelsort_go/sorters"
 	"pixelsort_go/types"
-	"runtime/pprof"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/remeh/sizedwaitgroup"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	profileFile, err := os.Create("cpuprofile.prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(profileFile)
-	defer pprof.StopCPUProfile()
 
 	app := &cli.App{
 		UseShortOptionHandling: true,
@@ -93,15 +88,12 @@ func main() {
 					return nil
 				},
 			},
-			&cli.IntFlag{
-				Name:    "quality",
-				Value:   100,
-				Aliases: []string{"q"},
-				Usage:   "(jpeg only) the `quality` of the output image.",
-				Action: func(ctx *cli.Context, v int) error {
-					if v < 20 || v > 100 {
-						return fmt.Errorf("quality is out of range [20-100]")
-					}
+			&cli.Float64Flag{
+				Name:    "angle",
+				Value:   0.0,
+				Aliases: []string{"a"},
+				Usage:   "rotate the image `angle` many degrees, pos or neg",
+				Action: func(ctx *cli.Context, v float64) error {
 					return nil
 				},
 			},
@@ -144,13 +136,25 @@ func main() {
 			masks := make([]string, 0)
 			shared.Config.Sorter = ctx.String("sorter")
 			shared.Config.Comparator = ctx.String("comparator")
-			shared.Config.Quality = ctx.Int("quality")
-			shared.Config.SectionLength = ctx.Int("section_length")
 			shared.Config.Thresholds.Lower = float32(ctx.Float64("lower_threshold"))
 			shared.Config.Thresholds.Upper = float32(ctx.Float64("upper_threshold"))
+			shared.Config.SectionLength = ctx.Int("section_length")
 			shared.Config.Reverse = ctx.Bool("reverse")
 			shared.Config.Randomness = float32(ctx.Float64("randomness"))
+			shared.Config.Angle = ctx.Float64("angle")
 			threadCount := ctx.Int("threads")
+
+			// profiling
+			/*masked := "unmasked"
+			if mask != "" || len(masks) > 0 {
+				masked = "masked"
+			}
+			profileFile, err := os.Create(fmt.Sprintf("cpuprofile-%s-%s-%s.prof", shared.Config.Comparator, shared.Config.Sorter, masked))
+			if err != nil {
+				log.Fatal(err)
+			}
+			pprof.StartCPUProfile(profileFile)
+			defer pprof.StopCPUProfile()*/
 
 			/// this can be done better but im lazy and braindead
 			inputfile, err := os.Open(input)
@@ -239,7 +243,7 @@ func main() {
 					} else if out == "" {
 						out = fmt.Sprintf("%s.%s", "sorted", fileSuffix)
 					}
-					println(fmt.Sprintf("Sorting image %d (%q -> %q)...", i+1, in, out))
+					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
 					maskIdx := 0
 					if maskLen > 1 {
 						maskIdx = i
@@ -292,6 +296,15 @@ func sortingTime(input, output, maskpath string) error {
 		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be decoded", input), 1)
 	}
 
+	// RO TA TE
+	// god why do i have to do thissssssswddenwfiosbduglzx er agdxbv
+	// this is used in the writing step cause `imaging` doesnt have a option to
+	// auto-crop transparency
+	originalDims := rawImg.Bounds()
+	if math.Mod(shared.Config.Angle, 180) != 0 {
+		rawImg = (*image.RGBA)(imaging.Rotate(rawImg, float64(shared.Config.Angle), color.Transparent))
+	}
+
 	// convert to rgba
 	b := rawImg.Bounds()
 	imgDims := image.Rect(0, 0, b.Dx(), b.Dy())
@@ -300,7 +313,7 @@ func sortingTime(input, output, maskpath string) error {
 	draw.Draw(img, img.Bounds(), rawImg, b.Min, draw.Src)
 	rawImg = nil
 
-	// MAYBE: figure out how to load mask once
+	// MAYBE: figure out how to load mask once if used multiple times
 	if maskpath != "" {
 		maskFile, err := os.Open(maskpath)
 
@@ -311,6 +324,10 @@ func sortingTime(input, output, maskpath string) error {
 		rawMask, _, err := image.Decode(maskFile)
 		if err != nil {
 			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be decoded", maskpath), 1)
+		}
+		// RO TA TE (again)
+		if math.Mod(shared.Config.Angle, 180) != 0 {
+			rawMask = imaging.Rotate(rawMask, float64(shared.Config.Angle), color.Transparent)
 		}
 		draw.Draw(mask, mask.Bounds(), rawMask, b.Min, draw.Src)
 		rawMask = nil
@@ -361,15 +378,23 @@ func sortingTime(input, output, maskpath string) error {
 		}
 	}
 
+	// ET AT OR
+	if math.Mod(shared.Config.Angle, 180) != 0 {
+		outputImg = (*image.RGBA)(imaging.Rotate(outputImg, -shared.Config.Angle, color.Transparent))
+		if math.Mod(shared.Config.Angle, 90) != 0 { // gotta crop the invisible pixels
+			outputImg = (*image.RGBA)(imaging.CropCenter(outputImg, originalDims.Dx(), originalDims.Dy()))
+		}
+	}
+
 	f, err := os.Create(output)
 	if err != nil {
 		return cli.Exit("Could not create output file", 1)
 	}
 	if strings.HasSuffix(input, "jpg") || strings.HasSuffix(input, "jpeg") {
 		options := jpeg.Options{
-			Quality: shared.Config.Quality,
+			Quality: 100,
 		}
-		jpeg.Encode(f, outputImg.SubImage(imgDims), &options)
+		jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &options)
 	} else {
 		png.Encode(f, outputImg)
 	}

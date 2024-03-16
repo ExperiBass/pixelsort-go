@@ -18,6 +18,7 @@ type SortConfig struct {
 	Randomness    float32
 	Reverse       bool
 	Thresholds    ThresholdConfig
+	Angle         float64
 }
 
 type ThresholdConfig struct {

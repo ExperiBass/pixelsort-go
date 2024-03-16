@@ -19,9 +19,7 @@ func Red(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
 	}
-	if checkPixelThresholds(int16(a.R)) || checkPixelThresholds(int16(b.R)) {
-		return 0
-	}
+
 	return int(a.R) - int(b.R)
 }
 
@@ -29,9 +27,7 @@ func Green(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
 	}
-	if checkPixelThresholds(int16(a.G)) || checkPixelThresholds(int16(b.G)) {
-		return 0
-	}
+
 	return int(a.G) - int(b.G)
 }
 
@@ -39,9 +35,7 @@ func Blue(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
 	}
-	if checkPixelThresholds(int16(a.B)) || checkPixelThresholds(int16(b.B)) {
-		return 0
-	}
+
 	return int(a.B) - int(b.B)
 }
 
@@ -53,9 +47,6 @@ func Hue(a, b types.PixelWithMask) int {
 	aHue := calculateHue(a)
 	bHue := calculateHue(b)
 
-	if checkPixelThresholds(int16(aHue)) || checkPixelThresholds(int16(bHue)) {
-		return 0
-	}
 	return int(aHue - bHue)
 }
 
@@ -67,9 +58,7 @@ func Saturation(a, b types.PixelWithMask) int {
 	aSat := calculateSaturation(a)
 	bSat := calculateSaturation(b)
 
-	if checkPixelThresholds(int16(aSat)) || checkPixelThresholds(int16(bSat)) {
-		return 0
-	}
+	//println(aSat, bSat)
 	return int(aSat - bSat)
 }
 
@@ -81,9 +70,6 @@ func Lightness(a, b types.PixelWithMask) int {
 	aLightness := calculateLightness(a)
 	bLightness := calculateLightness(b)
 	//println(aLightness, bLightness)
-	if checkPixelThresholds(int16(aLightness)) || checkPixelThresholds(int16(bLightness)) {
-		return 0
-	}
 	return int(aLightness - bLightness)
 }
 
@@ -91,14 +77,6 @@ func Darkness(a, b types.PixelWithMask) int {
 	return -Lightness(a, b)
 }
 
-// MAYBE: arbitrary thresholds (ex: green comparison with blue threhsolds)
-func checkPixelThresholds(val int16) bool {
-	// skip if beyond thresholds
-	if val < int16(shared.Config.Thresholds.Lower*255) || val > int16(shared.Config.Thresholds.Upper*255) {
-		return true
-	}
-	return false
-}
 func checkPixel(pixel types.PixelWithMask) bool {
 	// skip if masked
 	if pixel.Mask == 255 {
@@ -106,6 +84,11 @@ func checkPixel(pixel types.PixelWithMask) bool {
 	}
 	// and if null
 	if pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0 {
+		return true
+	}
+	// skip if beyond thresholds
+	lightness := calculateLightness(pixel)
+	if lightness < shared.Config.Thresholds.Lower*255 || lightness > shared.Config.Thresholds.Upper*255 {
 		return true
 	}
 	return false
@@ -123,21 +106,22 @@ func calculateHue(pixel types.PixelWithMask) int16 {
 	switch maxV {
 	case pixel.R:
 		{
-			hue = int16(pixel.G - pixel.B)
+			hue = max(1, int16(pixel.G)-int16(pixel.B))
 			break
 		}
 	case pixel.G:
 		{
-			hue = 2 + int16(pixel.B-pixel.R)
+			hue = 2 + (int16(pixel.B) - int16(pixel.R))
 			break
 		}
 	case pixel.B:
 		{
-			hue = 4 + int16(pixel.R-pixel.G)
+			hue = 4 + (int16(pixel.R) - int16(pixel.G))
 		}
 	}
 	// finish formula and convert to degrees
-	hue = (hue / (int16(maxV) - int16(minV))) * 60
+	// and avoid divide-by-zero
+	hue = (hue / max(1, int16(maxV)-int16(minV))) * 60
 	if hue < 0 {
 		hue += 360
 	}
@@ -146,8 +130,8 @@ func calculateHue(pixel types.PixelWithMask) int16 {
 func calculateSaturation(pixel types.PixelWithMask) float32 {
 	saturation := float32(0)
 	// pixels are RGBA so skip the A
-	minc := int(min(pixel.R, pixel.G, pixel.B))
-	maxc := int(max(pixel.R, pixel.G, pixel.B))
+	minc := float32(min(pixel.R, pixel.G, pixel.B))
+	maxc := float32(max(pixel.R, pixel.G, pixel.B))
 
 	if minc == maxc {
 		return saturation
@@ -155,11 +139,11 @@ func calculateSaturation(pixel types.PixelWithMask) float32 {
 
 	sum := maxc + minc
 	diff := maxc - minc
-	lightness := float32((sum / 2) / 255)
+	lightness := (sum / 2) / 255
 	if lightness < 0.5 {
-		saturation = float32(diff / sum)
+		saturation = diff / sum
 	} else {
-		saturation = float32(diff / (2 - diff))
+		saturation = diff / (2 - diff)
 	}
-	return saturation
+	return saturation * 1000
 }
