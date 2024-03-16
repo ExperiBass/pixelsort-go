@@ -381,7 +381,8 @@ func sortingTime(input, output, maskpath string) error {
 	// ET AT OR
 	if math.Mod(shared.Config.Angle, 180) != 0 {
 		outputImg = (*image.RGBA)(imaging.Rotate(outputImg, -shared.Config.Angle, color.Transparent))
-		if math.Mod(shared.Config.Angle, 90) != 0 { // gotta crop the invisible pixels
+		// gotta crop the invisible pixels
+		if math.Mod(shared.Config.Angle, 90) != 0 {
 			outputImg = (*image.RGBA)(imaging.CropCenter(outputImg, originalDims.Dx(), originalDims.Dy()))
 		}
 	}
