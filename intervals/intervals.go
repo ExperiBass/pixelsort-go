@@ -1,4 +1,4 @@
-package sorters
+package intervals
 
 import (
 	"math"
@@ -18,7 +18,7 @@ var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
 }
 
 func Sort(row []types.PixelWithMask) {
-	sorter := SortingFunctionMappings[shared.Config.Sorter]
+	sorter := SortingFunctionMappings[shared.Config.Interval]
 	stretches := getUnmaskedStretches(row)
 	for i := 0; i < len(stretches); i++ {
 		stretch := stretches[i]

@@ -11,9 +11,9 @@ type Stretch struct {
 }
 
 type SortConfig struct {
-	Sorter        string
+	Pattern       string
+	Interval      string
 	Comparator    string
-	Quality       int
 	SectionLength int
 	Randomness    float32
 	Reverse       bool

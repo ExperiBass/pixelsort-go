@@ -10,9 +10,9 @@ import (
 	"log"
 	"math"
 	"os"
-	"pixelsort_go/loaders"
+	"pixelsort_go/intervals"
+	"pixelsort_go/patterns"
 	"pixelsort_go/shared"
-	"pixelsort_go/sorters"
 	"slices"
 	"strings"
 	"time"
@@ -28,41 +28,50 @@ func main() {
 		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
+				Name:    "pattern",
+				Aliases: []string{"p"},
+				Usage:   "`pattern` loader to use",
+				Value:   "row",
+			},
+			&cli.StringSliceFlag{
 				Name:     "input",
 				Aliases:  []string{"i"},
 				Usage:    "`image`(s) to sort",
 				Required: true,
-				Action: func(ctx *cli.Context, v string) error {
-					if strings.HasSuffix(v, "jpg") || strings.HasSuffix(v, "jpeg") {
+				Action: func(ctx *cli.Context, v []string) error {
+					if len(v) < 1 {
+						return cli.Exit("No inputs given", 1)
+					}
+					/*if strings.HasSuffix(v, "jpg") || strings.HasSuffix(v, "jpeg") {
 						image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
 					} else if strings.HasSuffix(v, "png") {
 						image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-					}
+					}*/
 					return nil
 				},
 			},
 			&cli.StringFlag{
-				Name:     "output",
-				Aliases:  []string{"o"},
-				Usage:    "`file` to output to",
-				Required: false,
+				Name:    "output",
+				Aliases: []string{"o"},
+				Usage:   "`file` to output to",
 			},
 			&cli.StringFlag{
 				Name:    "mask",
 				Aliases: []string{"m"},
-				Usage:   "b&w `mask` to lay over the image; white is skipped",
+				Usage:   "b&w `mask` to determine which pixels to touch; white is skipped",
 			},
 			&cli.StringFlag{
-				Name:    "sorter",
+				Name:    "interval",
 				Value:   "row",
-				Aliases: []string{"s"},
-				Usage:   "sorting `algorithm` to use",
+				Aliases: []string{"I"},
+				// TODO: print valid intervals and comparators
+				Usage: "interval `func`tion to use",
 			},
 			&cli.StringFlag{
 				Name:    "comparator",
 				Value:   "lightness",
 				Aliases: []string{"c"},
-				Usage:   "comparison `function` to use",
+				Usage:   "comparison `func`tion to use",
 			},
 			&cli.Float64Flag{
 				Name:    "lower_threshold",
@@ -92,16 +101,13 @@ func main() {
 				Name:    "angle",
 				Value:   0.0,
 				Aliases: []string{"a"},
-				Usage:   "rotate the image `angle` many degrees, pos or neg",
-				Action: func(ctx *cli.Context, v float64) error {
-					return nil
-				},
+				Usage:   "rotate the image by `deg`rees, pos or neg",
 			},
 			&cli.IntFlag{
 				Name:    "section_length",
 				Value:   60,
 				Aliases: []string{"L"},
-				Usage:   "The base `length` of each slice",
+				Usage:   "The base `len`gth of each slice",
 			},
 			&cli.BoolFlag{
 				Name:  "reverse",
@@ -129,12 +135,12 @@ func main() {
 		Name:  "pixelsort_go",
 		Usage: "Visual decimation.",
 		Action: func(ctx *cli.Context) error {
-			input := ctx.String("input")
+			inputs := ctx.StringSlice("input")
 			output := ctx.String("output")
-			inputs := make([]string, 0)
 			mask := ctx.String("mask")
 			masks := make([]string, 0)
-			shared.Config.Sorter = ctx.String("sorter")
+			shared.Config.Pattern = ctx.String("pattern")
+			shared.Config.Interval = ctx.String("interval")
 			shared.Config.Comparator = ctx.String("comparator")
 			shared.Config.Thresholds.Lower = float32(ctx.Float64("lower_threshold"))
 			shared.Config.Thresholds.Upper = float32(ctx.Float64("upper_threshold"))
@@ -157,27 +163,32 @@ func main() {
 			defer pprof.StopCPUProfile()*/
 
 			/// this can be done better but im lazy and braindead
-			inputfile, err := os.Open(input)
-			if err != nil {
-				return cli.Exit("Input could not be opened", 1)
-			}
-			defer inputfile.Close()
-			inputStat, err := inputfile.Stat()
-			if err != nil {
-				return cli.Exit(fmt.Sprintf("Error getting input stats: %s", err), 1)
-			}
-			inputfile = nil
-			if inputStat.IsDir() {
-				image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-				image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-				// is a dir
-				res, err := readDirImages(input)
+			inputLen := len(inputs)
+			if inputLen == 1 {
+				input := inputs[0]
+
+				inputfile, err := os.Open(input)
 				if err != nil {
-					return err
+					return cli.Exit("Input could not be opened", 1)
 				}
-				inputs = res
-			} else {
-				inputs = append(inputs, input)
+				defer inputfile.Close()
+
+				inputStat, err := inputfile.Stat()
+				if err != nil {
+					return cli.Exit(fmt.Sprintf("Error getting input file stats: %s", err), 1)
+				}
+				inputfile = nil
+
+				if inputStat.IsDir() {
+					image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+					image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
+					// is a dir
+					res, err := readDirImages(input)
+					if err != nil {
+						return err
+					}
+					inputs = res
+				}
 			}
 
 			// masking
@@ -203,12 +214,7 @@ func main() {
 				}
 			}
 
-			inputLen := len(inputs)
 			maskLen := len(masks)
-
-			if inputLen == 0 {
-				return cli.Exit("No inputs given", 1)
-			}
 			if maskLen == 0 {
 				// empty string, will be ignored by sorting
 				masks = append(masks, "")
@@ -236,18 +242,15 @@ func main() {
 
 					in := inputs[i]
 					splitFileName := strings.Split(inputs[0], ".")
-					fileSuffix := splitFileName[len(splitFileName)-1]
+					fileSuffix := splitFileName[len(splitFileName)-1] // MAYBE: just use .png and .jpg
 					out := output
 					if inputLen > 1 {
 						out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
 					} else if out == "" {
-						out = fmt.Sprintf("%s.%s", "sorted", fileSuffix)
+						out = fmt.Sprintf("sorted.%s", fileSuffix)
 					}
 					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
-					maskIdx := 0
-					if maskLen > 1 {
-						maskIdx = i
-					}
+					maskIdx := min(i, maskLen-1)
 					err := sortingTime(in, out, masks[maskIdx])
 					if err != nil {
 						cli.Exit(fmt.Sprintf("Error occured during sort of image %d (%q): %q", i+1, in, err), 1)
@@ -296,16 +299,16 @@ func sortingTime(input, output, maskpath string) error {
 		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be decoded", input), 1)
 	}
 
-	// RO TA TE
-	// god why do i have to do thissssssswddenwfiosbduglzx er agdxbv
-	// this is used in the writing step cause `imaging` doesnt have a option to
-	// auto-crop transparency
+	/// RO TA TE
+	/// god why do i have to do thissssssswddenwfiosbduglzx er agdxbv
+	/// this is used in the writing step cause `imaging` doesnt have a option to
+	/// auto-crop transparency
 	originalDims := rawImg.Bounds()
-	if math.Mod(shared.Config.Angle, 180) != 0 {
-		rawImg = (*image.RGBA)(imaging.Rotate(rawImg, float64(shared.Config.Angle), color.Transparent))
+	if math.Mod(shared.Config.Angle, 360) != 0 {
+		rawImg = (*image.RGBA)(imaging.Rotate(rawImg, shared.Config.Angle, color.Transparent))
 	}
 
-	// convert to rgba
+	/// convert to rgba
 	b := rawImg.Bounds()
 	imgDims := image.Rect(0, 0, b.Dx(), b.Dy())
 	img := image.NewRGBA(imgDims)
@@ -313,7 +316,7 @@ func sortingTime(input, output, maskpath string) error {
 	draw.Draw(img, img.Bounds(), rawImg, b.Min, draw.Src)
 	rawImg = nil
 
-	// MAYBE: figure out how to load mask once if used multiple times
+	/// MAYBE: figure out how to load mask once if used multiple times
 	if maskpath != "" {
 		maskFile, err := os.Open(maskpath)
 
@@ -325,7 +328,7 @@ func sortingTime(input, output, maskpath string) error {
 		if err != nil {
 			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be decoded", maskpath), 1)
 		}
-		// RO TA TE (again)
+		/// RO TA TE (again)
 		if math.Mod(shared.Config.Angle, 180) != 0 {
 			rawMask = imaging.Rotate(rawMask, float64(shared.Config.Angle), color.Transparent)
 		}
@@ -333,19 +336,19 @@ func sortingTime(input, output, maskpath string) error {
 		rawMask = nil
 	}
 
-	/// TODO: separate image loading for additional algos like spiral or cluster sort
-	rows := loaders.LoadSpiral(*img, *mask)
+	/// use
+	rows := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
 
 	/// more whitespace
 	/// im not gonna rant again
 	/// just
 	/// *sigh*
 
-	// pass the rows to the sorter
+	/// pass the rows to the sorter
 	start := time.Now()
 	for i := 0; i < len(rows); i++ {
 		row := rows[i]
-		sorters.Sort(row)
+		intervals.Sort(row)
 	}
 	end := time.Now()
 	elapsed := end.Sub(start)
@@ -354,13 +357,13 @@ func sortingTime(input, output, maskpath string) error {
 	/// cant believe i have to do this so the stupid extension doesnt fucking trim my lines
 	/// like fuck dude i just want some fucking whitespace, its not that big of a deal
 
-	// now write
-	outputImg := loaders.SaveSpiral(rows, img.Bounds())
+	/// now write
+	outputImg := patterns.Saver[fmt.Sprintf("%ssave", shared.Config.Pattern)](rows, img.Bounds())
 
-	// ET AT OR
-	if math.Mod(shared.Config.Angle, 180) != 0 {
+	/// ET AT OR
+	if math.Mod(shared.Config.Angle, 360) != 0 {
 		outputImg = (*image.RGBA)(imaging.Rotate(outputImg, -shared.Config.Angle, color.Transparent))
-		// gotta crop the invisible pixels
+		/// gotta crop the invisible pixels
 		if math.Mod(shared.Config.Angle, 90) != 0 {
 			outputImg = (*image.RGBA)(imaging.CropCenter(outputImg, originalDims.Dx(), originalDims.Dy()))
 		}

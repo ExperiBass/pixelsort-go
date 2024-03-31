@@ -1,10 +1,20 @@
-package loaders
+package patterns
 
 import (
 	"image"
 	"image/color"
 	"pixelsort_go/types"
 )
+
+var Loader = map[string]func(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask{
+	/// theres a better way, right? please tell me im dumb
+	"rowload":    LoadRow,
+	"spiralload": LoadSpiral,
+}
+var Saver = map[string]func(rows [][]types.PixelWithMask, dims image.Rectangle) *image.RGBA{
+	"rowsave":    SaveRow,
+	"spiralsave": SaveSpiral,
+}
 
 func LoadRow(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 	dims := img.Bounds().Max
@@ -47,15 +57,13 @@ func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 		seam := make([]types.PixelWithMask, 0)
 
 		for x := offset; x < dims.X-offset; x++ {
-			///spirals = append(spirals, pixels[offset*dims.X+x])            // top
-			///spirals = append(spirals, pixels[(dims.Y-offset-1)*dims.X+x]) // bottom
 			topOffset := (offset*dims.X + x) * 4
 			top := img.Pix[topOffset : topOffset+4]
-			topMask := mask.Pix[topOffset+3]
+			topMask := mask.Pix[topOffset]
 
 			bottomOffset := ((dims.Y-offset-1)*dims.X + x) * 4
 			bottom := img.Pix[bottomOffset : bottomOffset+4]
-			bottomMask := mask.Pix[bottomOffset+3]
+			bottomMask := mask.Pix[bottomOffset]
 
 			seam = append(seam, types.PixelWithMask{R: top[0], G: top[1], B: top[2], A: top[3], Mask: topMask})
 			seam = append(seam, types.PixelWithMask{R: bottom[0], G: bottom[1], B: bottom[2], A: bottom[3], Mask: bottomMask})
@@ -63,15 +71,13 @@ func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 
 		// right & left
 		for y := offset + 1; y < dims.Y-offset-1; y++ {
-			///spiral = append(spiral, pixels[y*dims.X+offset])        // right
-			///spiral = append(spiral, pixels[y*dims.X+dims.X-offset]) // left
 			rightOffset := (y*dims.X + offset) * 4
 			right := img.Pix[rightOffset : rightOffset+4]
-			rightMask := img.Pix[rightOffset+3]
+			rightMask := mask.Pix[rightOffset]
 
 			leftOffset := (y*dims.X + dims.X - offset) * 4
 			left := img.Pix[leftOffset : leftOffset+4]
-			leftMask := img.Pix[leftOffset+3]
+			leftMask := mask.Pix[leftOffset]
 
 			seam = append(seam, types.PixelWithMask{R: right[0], G: right[1], B: right[2], A: right[3], Mask: rightMask})
 			seam = append(seam, types.PixelWithMask{R: left[0], G: left[1], B: left[2], A: left[3], Mask: leftMask})
@@ -100,7 +106,6 @@ func SaveSpiral(spirals [][]types.PixelWithMask, dims image.Rectangle) *image.RG
 			outputImg.Pix[idx+1] = pixel.G
 			outputImg.Pix[idx+2] = pixel.B
 			outputImg.Pix[idx+3] = pixel.A
-			println(idx)
 			index++
 		}
 
@@ -112,7 +117,6 @@ func SaveSpiral(spirals [][]types.PixelWithMask, dims image.Rectangle) *image.RG
 			outputImg.Pix[idx+1] = pixel.G
 			outputImg.Pix[idx+2] = pixel.B
 			outputImg.Pix[idx+3] = pixel.A
-			println(idx)
 			index++
 		}
 
@@ -124,7 +128,6 @@ func SaveSpiral(spirals [][]types.PixelWithMask, dims image.Rectangle) *image.RG
 			outputImg.Pix[idx+1] = pixel.G
 			outputImg.Pix[idx+2] = pixel.B
 			outputImg.Pix[idx+3] = pixel.A
-			println(idx)
 			index++
 		}
 
@@ -136,10 +139,9 @@ func SaveSpiral(spirals [][]types.PixelWithMask, dims image.Rectangle) *image.RG
 			outputImg.Pix[idx+1] = pixel.G
 			outputImg.Pix[idx+2] = pixel.B
 			outputImg.Pix[idx+3] = pixel.A
-			println(idx)
 			index++
 		}
 	}
-	println(len(outputImg.Pix))
+
 	return outputImg
 }
