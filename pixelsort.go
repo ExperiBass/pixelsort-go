@@ -10,9 +10,9 @@ import (
 	"log"
 	"math"
 	"os"
+	"pixelsort_go/loaders"
 	"pixelsort_go/shared"
 	"pixelsort_go/sorters"
-	"pixelsort_go/types"
 	"slices"
 	"strings"
 	"time"
@@ -333,21 +333,8 @@ func sortingTime(input, output, maskpath string) error {
 		rawMask = nil
 	}
 
-	dims := img.Bounds().Max
-
-	// split image into rows
-	rows := make([][]types.PixelWithMask, dims.Y)
-	for y := 0; y < dims.Y; y++ {
-		row := make([]types.PixelWithMask, dims.X)
-
-		for x := 0; x < dims.X; x++ {
-			pixel := img.At(x, y).(color.RGBA)
-			masked := mask.At(x, y).(color.RGBA).R
-			wrapped := types.PixelWithMask{R: pixel.R, G: pixel.G, B: pixel.B, A: pixel.A, Mask: masked}
-			row[x] = wrapped
-		}
-		rows[y] = row
-	}
+	/// TODO: separate image loading for additional algos like spiral or cluster sort
+	rows := loaders.LoadSpiral(*img, *mask)
 
 	/// more whitespace
 	/// im not gonna rant again
@@ -368,15 +355,7 @@ func sortingTime(input, output, maskpath string) error {
 	/// like fuck dude i just want some fucking whitespace, its not that big of a deal
 
 	// now write
-	outputImg := image.NewRGBA(imgDims)
-	for i := 0; i < len(rows); i++ {
-		row := rows[i]
-		for j := 0; j < len(row); j++ {
-			currPixWithMask := row[j]
-			pixel := color.RGBA{currPixWithMask.R, currPixWithMask.G, currPixWithMask.B, currPixWithMask.A}
-			outputImg.SetRGBA(j, i, pixel)
-		}
-	}
+	outputImg := loaders.SaveSpiral(rows, img.Bounds())
 
 	// ET AT OR
 	if math.Mod(shared.Config.Angle, 180) != 0 {
