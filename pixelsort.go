@@ -102,6 +102,7 @@ func main() {
 				Value:   0.0,
 				Aliases: []string{"a"},
 				Usage:   "rotate the image by `deg`rees, pos or neg",
+				// TODO: clamp to -360 - 360
 			},
 			&cli.IntFlag{
 				Name:    "section_length",
