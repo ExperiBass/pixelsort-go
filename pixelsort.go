@@ -188,6 +188,7 @@ func main() {
 						return err
 					}
 					inputs = res
+					inputLen = len(inputs)
 				}
 			}
 
