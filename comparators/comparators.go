@@ -39,6 +39,7 @@ func Blue(a, b types.PixelWithMask) int {
 	return int(a.B) - int(b.B)
 }
 
+// TODO: fix this; why does it leave holes?
 func Hue(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
@@ -50,6 +51,7 @@ func Hue(a, b types.PixelWithMask) int {
 	return int(aHue - bHue)
 }
 
+// TODO: fix this; why does it leave holes?
 func Saturation(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
@@ -87,6 +89,7 @@ func checkPixel(pixel types.PixelWithMask) bool {
 		return true
 	}
 	// skip if beyond thresholds
+	// FIXME: figure out why thresholds with spiral results in holes in the image
 	lightness := calculateLightness(pixel)
 	if lightness < shared.Config.Thresholds.Lower*255 || lightness > shared.Config.Thresholds.Upper*255 {
 		return true
@@ -99,29 +102,29 @@ func calculateLightness(pixel types.PixelWithMask) float32 {
 	//return int16(pixel.R)*29 + int16(pixel.G)*59 + int16(pixel.B)*11
 }
 
-func calculateHue(pixel types.PixelWithMask) int16 {
-	hue := int16(0)
+func calculateHue(pixel types.PixelWithMask) float32 {
+	hue := float32(0)
 	maxV := max(pixel.R, pixel.G, pixel.B)
 	minV := min(pixel.R, pixel.G, pixel.B)
 	switch maxV {
 	case pixel.R:
 		{
-			hue = max(1, int16(pixel.G)-int16(pixel.B))
+			hue = max(1, float32(pixel.G)-float32(pixel.B))
 			break
 		}
 	case pixel.G:
 		{
-			hue = 2 + (int16(pixel.B) - int16(pixel.R))
+			hue = 2 + (float32(pixel.B) - float32(pixel.R))
 			break
 		}
 	case pixel.B:
 		{
-			hue = 4 + (int16(pixel.R) - int16(pixel.G))
+			hue = 4 + (float32(pixel.R) - float32(pixel.G))
 		}
 	}
 	// finish formula and convert to degrees
 	// and avoid divide-by-zero
-	hue = (hue / max(1, int16(maxV)-int16(minV))) * 60
+	hue = (hue / max(1, float32(maxV)-float32(minV))) * 60
 	if hue < 0 {
 		hue += 360
 	}

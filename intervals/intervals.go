@@ -17,12 +17,12 @@ var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
 	"wave":        Wave,
 }
 
-func Sort(row []types.PixelWithMask) {
+func Sort(section []types.PixelWithMask) {
 	sorter := SortingFunctionMappings[shared.Config.Interval]
-	stretches := getUnmaskedStretches(row)
+	stretches := getUnmaskedStretches(section)
 	for i := 0; i < len(stretches); i++ {
 		stretch := stretches[i]
-		sorter(row[stretch.Start:stretch.End])
+		sorter(section[stretch.Start:stretch.End])
 	}
 }
 
