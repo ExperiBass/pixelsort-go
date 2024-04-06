@@ -48,20 +48,26 @@ func SaveRow(rows [][]types.PixelWithMask, dims image.Rectangle) *image.RGBA {
 
 // https://github.com/jeffThompson/PixelSorting/blob/master/SpiralSortPixels/SpiralSortPixels.pde
 // prayge, i'm not a mathy fomx
+// this also half-works; when giving a mask, or skipping the sorting step, the image comes out
+// missing half its pixels in all but one direction (usually the left side) and the
+// remaining three parts are flipped
 func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 	dims := img.Bounds().Max
+	width := dims.X
+	height := dims.Y
+
 	seams := make([][]types.PixelWithMask, 0)
 
 	for offset := 0; offset < dims.Y/2; offset++ {
 
 		seam := make([]types.PixelWithMask, 0)
 
-		for x := offset; x < dims.X-offset; x++ {
-			topOffset := (offset*dims.X + x) * 4
+		for x := offset; x < width-offset; x++ {
+			topOffset := (offset*width + x) * 4
 			top := img.Pix[topOffset : topOffset+4]
 			topMask := mask.Pix[topOffset]
 
-			bottomOffset := ((dims.Y-offset-1)*dims.X + x) * 4
+			bottomOffset := ((height-offset-1)*width + x) * 4
 			bottom := img.Pix[bottomOffset : bottomOffset+4]
 			bottomMask := mask.Pix[bottomOffset]
 
@@ -70,12 +76,12 @@ func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 		}
 
 		// right & left
-		for y := offset + 1; y < dims.Y-offset-1; y++ {
-			rightOffset := (y*dims.X + offset) * 4
+		for y := offset + 1; y < height-offset-1; y++ {
+			rightOffset := (y*width + offset) * 4
 			right := img.Pix[rightOffset : rightOffset+4]
 			rightMask := mask.Pix[rightOffset]
 
-			leftOffset := (y*dims.X + dims.X - offset) * 4
+			leftOffset := (y*width + width - offset) * 4
 			left := img.Pix[leftOffset : leftOffset+4]
 			leftMask := mask.Pix[leftOffset]
 
