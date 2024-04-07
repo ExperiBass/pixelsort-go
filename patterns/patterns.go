@@ -51,6 +51,7 @@ func SaveRow(rows [][]types.PixelWithMask, dims image.Rectangle) *image.RGBA {
 // this also half-works; when giving a mask, or skipping the sorting step, the image comes out
 // missing half its pixels in all but one direction (usually the left side) and the
 // remaining three parts are flipped
+// only on some images tho!!!! wheeeee!!!!!!!!!
 func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 	dims := img.Bounds().Max
 	width := dims.X
@@ -58,7 +59,7 @@ func LoadSpiral(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 
 	seams := make([][]types.PixelWithMask, 0)
 
-	for offset := 0; offset < dims.Y/2; offset++ {
+	for offset := 0; offset < height/2; offset++ {
 
 		seam := make([]types.PixelWithMask, 0)
 
