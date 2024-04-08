@@ -25,30 +25,31 @@ import (
 func main() {
 
 	app := &cli.App{
+		Name:                   "pixelsort_go",
+		Usage:                  "Organize pixels.",
+		Version:                "v1.0.0",
 		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "pattern",
-				Aliases: []string{"p"},
-				Usage:   "`pattern` loader to use",
-				Value:   "row",
-			},
 			&cli.StringSliceFlag{
 				Name:     "input",
 				Aliases:  []string{"i"},
-				Usage:    "`image`(s) to sort",
+				Usage:    "`image`(s) to sort, or a dir full of images",
 				Required: true,
 				Action: func(ctx *cli.Context, v []string) error {
 					if len(v) < 1 {
 						return cli.Exit("No inputs given", 1)
 					}
-					/*if strings.HasSuffix(v, "jpg") || strings.HasSuffix(v, "jpeg") {
-						image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-					} else if strings.HasSuffix(v, "png") {
-						image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-					}*/
+					/// ... is this needed?
+					// image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
+					// image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 					return nil
 				},
+			},
+			&cli.StringFlag{
+				Name:    "pattern",
+				Aliases: []string{"p"},
+				Usage:   "`pattern` loader to use",
+				Value:   "row",
 			},
 			&cli.StringFlag{
 				Name:    "output",
@@ -133,8 +134,7 @@ func main() {
 				Usage:   "Sort images in parallel across `N` threads",
 			},
 		},
-		Name:  "pixelsort_go",
-		Usage: "Visual decimation.",
+		Commands: []*cli.Command{},
 		Action: func(ctx *cli.Context) error {
 			inputs := ctx.StringSlice("input")
 			output := ctx.String("output")
@@ -164,6 +164,7 @@ func main() {
 			defer pprof.StopCPUProfile()*/
 
 			/// this can be done better but im lazy and braindead
+			/// MAYBE: accept multiple dirs? pop them and append contents?
 			inputLen := len(inputs)
 			if inputLen == 1 {
 				input := inputs[0]
@@ -181,9 +182,6 @@ func main() {
 				inputfile = nil
 
 				if inputStat.IsDir() {
-					image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-					image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
-					// is a dir
 					res, err := readDirImages(input)
 					if err != nil {
 						return err
@@ -346,6 +344,7 @@ func sortingTime(input, output, maskpath string) error {
 	/// just
 	/// *sigh*
 
+	println(fmt.Sprintf("Sorting %s...", input))
 	/// pass the rows to the sorter
 	start := time.Now()
 	for i := 0; i < len(rows); i++ {
@@ -354,7 +353,7 @@ func sortingTime(input, output, maskpath string) error {
 	}
 	end := time.Now()
 	elapsed := end.Sub(start)
-	fmt.Println(output, "Elapsed:", elapsed.Truncate(time.Millisecond).String())
+	fmt.Println(output, "elapsed:", elapsed.Truncate(time.Millisecond).String())
 
 	/// cant believe i have to do this so the stupid extension doesnt fucking trim my lines
 	/// like fuck dude i just want some fucking whitespace, its not that big of a deal
@@ -371,6 +370,7 @@ func sortingTime(input, output, maskpath string) error {
 		}
 	}
 
+	println(fmt.Sprintf("Writing %s...", output))
 	f, err := os.Create(output)
 	if err != nil {
 		return cli.Exit("Could not create output file", 1)
