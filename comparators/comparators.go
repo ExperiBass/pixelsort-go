@@ -39,7 +39,6 @@ func Blue(a, b types.PixelWithMask) int {
 	return int(a.B) - int(b.B)
 }
 
-// TODO: fix this; why does it leave holes?
 func Hue(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0
@@ -51,7 +50,6 @@ func Hue(a, b types.PixelWithMask) int {
 	return int(aHue - bHue)
 }
 
-// TODO: fix this; why does it leave holes?
 func Saturation(a, b types.PixelWithMask) int {
 	if checkPixel(a) || checkPixel(b) {
 		return 0

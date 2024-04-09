@@ -310,34 +310,36 @@ func sortingTime(input, output, maskpath string) error {
 
 	/// convert to rgba
 	b := rawImg.Bounds()
-	imgDims := image.Rect(0, 0, b.Dx(), b.Dy())
-	img := image.NewRGBA(imgDims)
-	mask := image.NewRGBA(imgDims)
+	sortingDims := image.Rect(0, 0, b.Dx(), b.Dy())
+	img := image.NewRGBA(sortingDims)
+	mask := image.NewRGBA(sortingDims)
 	draw.Draw(img, img.Bounds(), rawImg, b.Min, draw.Src)
 	rawImg = nil
 
 	/// MAYBE: figure out how to load mask once if used multiple times
 	if maskpath != "" {
 		maskFile, err := os.Open(maskpath)
-
 		if err != nil {
 			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be opened", maskpath), 1)
 		}
 		defer maskFile.Close()
+
 		rawMask, _, err := image.Decode(maskFile)
 		if err != nil {
 			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be decoded", maskpath), 1)
 		}
+
 		/// RO TA TE (again)
 		if math.Mod(shared.Config.Angle, 180) != 0 {
 			rawMask = imaging.Rotate(rawMask, float64(shared.Config.Angle), color.Transparent)
 		}
+
 		draw.Draw(mask, mask.Bounds(), rawMask, b.Min, draw.Src)
 		rawMask = nil
 	}
 
-	/// use
-	rows := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
+	/// load stretches
+	stretches := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
 
 	/// more whitespace
 	/// im not gonna rant again
@@ -347,8 +349,8 @@ func sortingTime(input, output, maskpath string) error {
 	println(fmt.Sprintf("Sorting %s...", input))
 	/// pass the rows to the sorter
 	start := time.Now()
-	for i := 0; i < len(rows); i++ {
-		row := rows[i]
+	for i := 0; i < len(stretches); i++ {
+		row := stretches[i]
 		intervals.Sort(row)
 	}
 	end := time.Now()
@@ -359,7 +361,7 @@ func sortingTime(input, output, maskpath string) error {
 	/// like fuck dude i just want some fucking whitespace, its not that big of a deal
 
 	/// now write
-	outputImg := patterns.Saver[fmt.Sprintf("%ssave", shared.Config.Pattern)](rows, img.Bounds())
+	outputImg := patterns.Saver[fmt.Sprintf("%ssave", shared.Config.Pattern)](stretches, img.Bounds())
 
 	/// ET AT OR
 	if math.Mod(shared.Config.Angle, 360) != 0 {
@@ -375,6 +377,9 @@ func sortingTime(input, output, maskpath string) error {
 	if err != nil {
 		return cli.Exit("Could not create output file", 1)
 	}
+
+	/// spit the result out
+	/// MAYBE: arbitrary extensions?
 	if strings.HasSuffix(input, "jpg") || strings.HasSuffix(input, "jpeg") {
 		options := jpeg.Options{
 			Quality: 100,
