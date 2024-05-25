@@ -65,7 +65,7 @@ func main() {
 				Name:    "interval",
 				Value:   "row",
 				Aliases: []string{"I"},
-				// TODO: print valid intervals and comparators
+				/// TODO: print valid intervals and comparators
 				Usage: "interval `func`tion to use",
 			},
 			&cli.StringFlag{
@@ -151,7 +151,7 @@ func main() {
 			shared.Config.Angle = ctx.Float64("angle")
 			threadCount := ctx.Int("threads")
 
-			// profiling
+			/// profiling
 			/*masked := "unmasked"
 			if mask != "" || len(masks) > 0 {
 				masked = "masked"
@@ -191,7 +191,7 @@ func main() {
 				}
 			}
 
-			// masking
+			/// masking
 			if mask != "" {
 				maskfile, err := os.Open(mask)
 				if err != nil {
@@ -216,15 +216,15 @@ func main() {
 
 			maskLen := len(masks)
 			if maskLen == 0 {
-				// empty string, will be ignored by sorting
+				/// empty string, will be ignored by sorting
 				masks = append(masks, "")
 				maskLen = len(masks)
 			}
 			infoString := fmt.Sprintf("Sorting %d images with a config of %+v.", inputLen, shared.Config)
 			println(infoString)
 
-			// multiple imgs
-			// sort em first so frames dont get jumbled
+			/// multiple imgs
+			/// sort em first so frames dont get jumbled
 			slices.SortFunc(inputs, func(a, b string) int {
 				return strings.Compare(a, b)
 			})
@@ -232,7 +232,7 @@ func main() {
 				return strings.Compare(a, b)
 			})
 
-			// create workgroup
+			/// create workgroup
 			wg := sizedwaitgroup.New(threadCount)
 
 			for i := 0; i < inputLen; i++ {
@@ -280,7 +280,7 @@ func readDirImages(input string) ([]string, error) {
 			}
 		}
 	}
-	// remove empty elms
+	/// remove empty elms
 	inputs = slices.DeleteFunc(inputs, func(s string) bool {
 		return len(strings.TrimSpace(s)) == 0
 	})

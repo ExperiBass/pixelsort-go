@@ -31,8 +31,14 @@ func Shuffle(interval []types.PixelWithMask) {
 	if mathRand.Float32() > shared.Config.Randomness {
 		return
 	}
+	/// we want shuffling to respect thresholds/masks too, so
+	/// use the result to determine whether to skip or not
+	comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
 	mathRand.Shuffle(len(interval), func(i, j int) {
-		interval[i], interval[j] = interval[j], interval[i]
+		skip := comparator(interval[i], interval[j])
+		if skip != 0 {
+			interval[i], interval[j] = interval[j], interval[i]
+		}
 	})
 }
 
@@ -55,7 +61,7 @@ func Random(interval []types.PixelWithMask) {
 		if j >= intervalLength {
 			break
 		}
-		// so many broken limbs, call me the cast fox
+		/// so many broken limbs, call me the cast fox
 		stretchLength := max(mathRand.Int(), int(math.Floor(float64(float32(section_length)*shared.Config.Randomness))))
 		endIdx := min(j+stretchLength, intervalLength)
 		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
@@ -95,15 +101,15 @@ func Wave(interval []types.PixelWithMask) {
 		if j >= intervalLength {
 			break
 		}
-		// how far out waves will reach past their base length
+		/// how far out waves will reach past their base length
 		waveOffsetMax := mathRand.Float64() * 100
-		// clamp to no further than baseLen
+		/// clamp to no further than baseLen
 		waveOffsetMin := min(waveOffsetMax, math.Floor(float64(float32(baseLength)*shared.Config.Randomness)))
 
-		// waves can reach forward or hang back
+		/// waves can reach forward or hang back
 		waveLength := baseLength + randBetween(int(waveOffsetMax), int(-waveOffsetMin))
 
-		// now add to stretches
+		/// now add to stretches
 		endIdx := min(j+waveLength, intervalLength)
 		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
 		j += waveLength
@@ -131,11 +137,11 @@ func randBetween(max int, min_opt ...int) int {
 func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
 	for stretchIdx := 0; stretchIdx < len(stretches); stretchIdx++ {
 		stretch := stretches[stretchIdx]
-		// grab the pixels we want
+		/// grab the pixels we want
 		pixels := interval[stretch.Start:stretch.End]
 
 		if shared.Config.Reverse {
-			// do a flip!
+			/// do a flip!
 			for i, j := 0, len(pixels)-1; i < j; i, j = i+1, j-1 {
 				pixels[i], pixels[j] = pixels[j], pixels[i]
 			}
@@ -144,7 +150,7 @@ func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
 		slices.SortStableFunc(pixels, comparator)
 
 		if shared.Config.Reverse {
-			// /unflip
+			/// [/unflip]
 			for i, j := 0, len(pixels)-1; i < j; i, j = i+1, j-1 {
 				pixels[i], pixels[j] = pixels[j], pixels[i]
 			}
@@ -159,9 +165,9 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 
 	for j := 0; j < len(interval); j++ {
 		pixel := interval[j]
-		// if masked off, or nil
+		/// if masked off, or nil
 		if pixel.Mask == 255 || (pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0) {
-			// look ahead for the end of the mask
+			/// look ahead for the end of the mask
 			endMaskIdx := j
 			for {
 				if endMaskIdx >= len(interval) {
@@ -178,12 +184,12 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 			//stretches[len(stretches)] = stretch
 			stretches = append(stretches, stretch)
 
-			// jump past the mask and continue
+			/// jump past the mask and continue
 			baseIdx = endMaskIdx
 			j = baseIdx
 		}
 	}
-	// and then add any remaning unmasked pixels
+	/// and then add any remaning unmasked pixels
 	//stretches[0] = types.Stretch{Start: baseIdx, End: len(interval)}
 	stretches = append(stretches, types.Stretch{Start: baseIdx, End: len(interval)})
 	//fmt.Printf("stretches: %v\n", stretches)

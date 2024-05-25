@@ -78,16 +78,16 @@ func Darkness(a, b types.PixelWithMask) int {
 }
 
 func checkPixel(pixel types.PixelWithMask) bool {
-	// skip if masked
+	/// skip if masked
 	if pixel.Mask == 255 {
 		return true
 	}
-	// and if null
+	/// and if null
 	if pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0 {
 		return true
 	}
-	// skip if beyond thresholds
-	// FIXME: figure out why thresholds with spiral results in holes in the image
+	/// skip if beyond thresholds
+	/// FIXME: figure out why thresholds with spiral results in holes in the image
 	lightness := calculateLightness(pixel)
 	if lightness < shared.Config.Thresholds.Lower*255 || lightness > shared.Config.Thresholds.Upper*255 {
 		return true
@@ -120,8 +120,8 @@ func calculateHue(pixel types.PixelWithMask) float32 {
 			hue = 4 + (float32(pixel.R) - float32(pixel.G))
 		}
 	}
-	// finish formula and convert to degrees
-	// and avoid divide-by-zero
+	/// finish formula and convert to degrees
+	/// and avoid divide-by-zero
 	hue = (hue / max(1, float32(maxV)-float32(minV))) * 60
 	if hue < 0 {
 		hue += 360
@@ -130,7 +130,7 @@ func calculateHue(pixel types.PixelWithMask) float32 {
 }
 func calculateSaturation(pixel types.PixelWithMask) float32 {
 	saturation := float32(0)
-	// pixels are RGBA so skip the A
+	/// pixels are RGBA so skip the A
 	minc := float32(min(pixel.R, pixel.G, pixel.B))
 	maxc := float32(max(pixel.R, pixel.G, pixel.B))
 

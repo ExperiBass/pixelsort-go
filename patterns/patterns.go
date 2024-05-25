@@ -18,7 +18,7 @@ var Saver = map[string]func(rows [][]types.PixelWithMask, dims image.Rectangle) 
 
 func LoadRow(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
 	dims := img.Bounds().Max
-	// split image into rows
+	/// split image into rows
 	rows := make([][]types.PixelWithMask, dims.Y)
 	for y := 0; y < dims.Y; y++ {
 		row := make([]types.PixelWithMask, dims.X)
@@ -152,3 +152,23 @@ func SaveSpiral(seams [][]types.PixelWithMask, dims image.Rectangle) *image.RGBA
 
 	return outputImg
 }
+
+/*
+func LoadSeamCarving(img image.RGBA, mask image.RGBA) [][]types.PixelWithMask {
+	dims := img.Bounds().Max
+	width := dims.X
+	height := dims.Y
+
+	seams := make([][]types.PixelWithMask, 0)
+	// TODO
+	return seams
+}
+func SaveSeamCarving(seams [][]types.PixelWithMask, dims image.Rectangle) *image.RGBA {
+	outputImg := image.NewRGBA(dims)
+
+	width := dims.Max.X
+	height := dims.Max.Y
+	// TODO
+	return outputImg
+}
+*/
