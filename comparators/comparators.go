@@ -12,7 +12,8 @@ var ComparatorFunctionMappings = map[string]types.ComparatorFunc{
 	"hue":        Hue,
 	"saturation": Saturation,
 	"lightness":  Lightness,
-	"darkness":   Darkness,
+	"max":        Max,
+	"min":        Min,
 }
 
 func Red(a, b types.PixelWithMask) int {
@@ -73,8 +74,23 @@ func Lightness(a, b types.PixelWithMask) int {
 	return int(aLightness - bLightness)
 }
 
-func Darkness(a, b types.PixelWithMask) int {
-	return -Lightness(a, b)
+func Max(a, b types.PixelWithMask) int {
+	if checkPixel(a) || checkPixel(b) {
+		return 0
+	}
+
+	aMax := int(max(a.R, a.G, a.B))
+	bMax := int(max(b.R, b.G, b.B))
+	return aMax - bMax
+}
+func Min(a, b types.PixelWithMask) int {
+	if checkPixel(a) || checkPixel(b) {
+		return 0
+	}
+
+	aMin := int(min(a.R, a.G, a.B))
+	bMin := int(min(b.R, b.G, b.B))
+	return aMin - bMin
 }
 
 func checkPixel(pixel types.PixelWithMask) bool {
