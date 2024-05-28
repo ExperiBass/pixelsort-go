@@ -241,14 +241,16 @@ func main() {
 					defer wg.Done()
 
 					in := inputs[i]
+					out := output
 					splitFileName := strings.Split(inputs[0], ".")
 					fileSuffix := splitFileName[len(splitFileName)-1] // MAYBE: just use .png and .jpg
-					out := output
+
 					if inputLen > 1 {
 						out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
 					} else if out == "" {
-						out = fmt.Sprintf("sorted.%s", fileSuffix)
+						out = "sorted"
 					}
+					//out = fmt.Sprintf("%s.%s", out, fileSuffix)
 					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
 					maskIdx := min(i, maskLen-1)
 					err := sortingTime(in, out, masks[maskIdx])
@@ -293,9 +295,10 @@ func sortingTime(input, output, maskpath string) error {
 		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be opened", input), 1)
 	}
 	defer file.Close()
-
 	rawImg, _, err := image.Decode(file)
 	if err != nil {
+		println(err.Error())
+		// for some reason this error specficially doesnt display?
 		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be decoded", input), 1)
 	}
 
@@ -380,13 +383,16 @@ func sortingTime(input, output, maskpath string) error {
 
 	/// spit the result out
 	/// MAYBE: arbitrary extensions?
-	if strings.HasSuffix(input, "jpg") || strings.HasSuffix(input, "jpeg") {
+	if strings.HasSuffix(strings.ToLower(input), "jpg") || strings.HasSuffix(strings.ToLower(input), "jpeg") {
 		options := jpeg.Options{
 			Quality: 100,
 		}
 		jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &options)
 	} else {
-		png.Encode(f, outputImg)
+		pngcoder := png.Encoder{
+			CompressionLevel: png.NoCompression,
+		}
+		pngcoder.Encode(f, outputImg)
 	}
 	return nil
 }

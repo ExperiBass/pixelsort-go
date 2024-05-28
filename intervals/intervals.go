@@ -62,7 +62,7 @@ func Random(interval []types.PixelWithMask) {
 			break
 		}
 		/// so many broken limbs, call me the cast fox
-		stretchLength := max(mathRand.Int(), int(math.Floor(float64(float32(section_length)*shared.Config.Randomness))))
+		stretchLength := max(mathRand.Int(), int(math.Floor(float64(section_length)*float64(shared.Config.Randomness))))
 		endIdx := min(j+stretchLength, intervalLength)
 		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
 		j += stretchLength
@@ -74,16 +74,17 @@ func Random(interval []types.PixelWithMask) {
 func RandomNoisy(interval []types.PixelWithMask) {
 	stretches := make([]types.Stretch, 0)
 	intervalLength := len(interval)
-	min_section_length := shared.Config.SectionLength
 
 	j := 0
 	for {
 		if j >= intervalLength {
 			break
 		}
-		randLength := randBetween((intervalLength - j), min_section_length)
-		endIdx := min(j+randLength, intervalLength)
-		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
+		randLength := randBetween((intervalLength - j), 1)
+		if mathRand.Float32() < shared.Config.Randomness {
+			endIdx := min(j+randLength, intervalLength)
+			stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
+		}
 		j += randLength
 	}
 	commonSort(stretches, interval)
@@ -102,12 +103,11 @@ func Wave(interval []types.PixelWithMask) {
 			break
 		}
 		/// how far out waves will reach past their base length
-		waveOffsetMax := mathRand.Float64() * 100
 		/// clamp to no further than baseLen
-		waveOffsetMin := min(waveOffsetMax, math.Floor(float64(float32(baseLength)*shared.Config.Randomness)))
+		waveOffsetMin := math.Floor(float64(float32(baseLength) * shared.Config.Randomness))
 
 		/// waves can reach forward or hang back
-		waveLength := baseLength + randBetween(int(waveOffsetMax), int(-waveOffsetMin))
+		waveLength := baseLength + randBetween(int(waveOffsetMin), int(-waveOffsetMin))
 
 		/// now add to stretches
 		endIdx := min(j+waveLength, intervalLength)
@@ -127,7 +127,7 @@ func randBetween(max int, min_opt ...int) int {
 	if len(min_opt) > 0 {
 		min = min_opt[0]
 	}
-	randNum := mathRand.Float64()
+	randNum := mathRand.Float64() // * float64(shared.Config.Randomness)
 	if min != 0 {
 		return int(math.Floor(randNum*float64(((+max)+1)-(+min)))) + (+min)
 	}
