@@ -42,6 +42,14 @@ func Shuffle(interval []types.PixelWithMask) {
 	})
 }
 
+func Smear(interval []types.PixelWithMask)
+
+/// TODO:
+/// 1 - grab pixel
+/// 2 - copy+paste along SectionLength, making a band of a single color
+/// 3 - if mathRand.Float32() < shared.Config.Randomness, go to 1
+/// 4 - otherwise, keep the pixel and go to 2
+
 func Row(interval []types.PixelWithMask) {
 	if mathRand.Float32() > shared.Config.Randomness {
 		return
