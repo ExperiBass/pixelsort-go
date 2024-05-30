@@ -21,19 +21,19 @@ furst time using go, might be cursed
 ![webb picture-of-the-month 2023/10](https://cdn.esawebb.org/archives/images/screen/potm2310a.jpg) - [src: ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team](https://esawebb.org/images/potm2310a/)  
 
 **Mask**  
-![mask](./examples/webb-mask.jpg)  
+![mask](./examples/mask.jpg)  
 
 **Random sort**  
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --upper_threshold 0.4 --lower_threshold 0.2 --comparator saturation --angle 30 --randomness 0.4 --interval randomnoisy --output ./examples/webb-sort.jpg`
-![randomsort](./examples/webb-sort.jpg)
+![randomsort](./examples/webb-random-angled.jpg)
 
 **Basic row sort w/ default options & mask**  
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --mask ./examples/webb-mask.jpg --output ./examples/webb-sort.jpg`
-![masked row sort](./examples/webb-sort-mask.jpg)  
+![masked row sort](./examples/webb-row-masked.jpg)  
 
 **Spiral sort using most options & mask**  
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --mask ./examples/webb-mask.jpg --pattern spiral --interval wave --randomness 0.4 --comparator saturation --section_length 400 --output ./examples/webb-spiral.jpg`
-![masked spiral sort](./examples/webb-spiral-mask.jpg)  
+![masked spiral sort](./examples/webb-spiral-masked.jpg)  
 did you know webb and hubble pics are cc4?  
 
 "elapsed" is time spent actually sorting  
