@@ -10,6 +10,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"pixelsort_go/comparators"
 	"pixelsort_go/intervals"
 	"pixelsort_go/patterns"
 	"pixelsort_go/shared"
@@ -23,6 +24,17 @@ import (
 )
 
 func main() {
+	validIntervals := make([]string, 0)
+	validComparators := make([]string, 0)
+
+	/// ...ugh
+	/// too lazy to do patterns
+	for k := range intervals.SortingFunctionMappings {
+		validIntervals = append(validIntervals, k)
+	}
+	for k := range comparators.ComparatorFunctionMappings {
+		validComparators = append(validComparators, k)
+	}
 
 	app := &cli.App{
 		Name:                   "pixelsort_go",
@@ -39,9 +51,6 @@ func main() {
 					if len(v) < 1 {
 						return cli.Exit("No inputs given", 1)
 					}
-					/// ... is this needed?
-					// image.RegisterFormat("jpeg", "jpeg", jpeg.Decode, jpeg.DecodeConfig)
-					// image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 					return nil
 				},
 			},
@@ -66,19 +75,19 @@ func main() {
 				Value:   "row",
 				Aliases: []string{"I"},
 				/// TODO: print valid intervals and comparators
-				Usage: "interval `func`tion to use",
+				Usage: fmt.Sprintf("interval `func`tion to use\nFunctions: %s\n", strings.Join(validIntervals, ", ")),
 			},
 			&cli.StringFlag{
 				Name:    "comparator",
 				Value:   "lightness",
 				Aliases: []string{"c"},
-				Usage:   "comparison `func`tion to use",
+				Usage:   fmt.Sprintf("comparison `func`tion to use\nFunctions: %s\n", strings.Join(validComparators, ", ")),
 			},
 			&cli.Float64Flag{
 				Name:    "lower_threshold",
 				Value:   0.0,
 				Aliases: []string{"l"},
-				Usage:   "pixels below this `threshold` won't be sorted",
+				Usage:   "pixels below this `thresh`old won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
 						return fmt.Errorf("lower_threshold is out of range [0.0-1.0]")
@@ -90,7 +99,7 @@ func main() {
 				Name:    "upper_threshold",
 				Value:   1.0,
 				Aliases: []string{"u"},
-				Usage:   "pixels above this `threshold` won't be sorted",
+				Usage:   "pixels above this `thresh`old won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
 						return fmt.Errorf("upper_threshold is out of range [0.0-1.0]")
@@ -134,7 +143,7 @@ func main() {
 				Usage:   "Sort images in parallel across `N` threads",
 			},
 		},
-		Commands: []*cli.Command{},
+		//Commands: []*cli.Command{},
 		Action: func(ctx *cli.Context) error {
 			inputs := ctx.StringSlice("input")
 			output := ctx.String("output")
@@ -182,7 +191,7 @@ func main() {
 				inputfile = nil
 
 				if inputStat.IsDir() {
-					res, err := readDirImages(input)
+					res, err := readdirForImages(input)
 					if err != nil {
 						return err
 					}
@@ -204,7 +213,7 @@ func main() {
 				}
 				maskfile = nil
 				if maskStat.IsDir() {
-					res, err := readDirImages(mask)
+					res, err := readdirForImages(mask)
 					if err != nil {
 						return err
 					}
@@ -268,7 +277,7 @@ func main() {
 	}
 }
 
-func readDirImages(input string) ([]string, error) {
+func readdirForImages(input string) ([]string, error) {
 	files, err := os.ReadDir(input)
 	if err != nil {
 		return nil, cli.Exit("Couldn't read input dir", 1)

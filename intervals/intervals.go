@@ -10,11 +10,11 @@ import (
 )
 
 var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
-	"shuffle":     Shuffle,
-	"smear":       Smear,
 	"row":         Row,
 	"random":      Random,
 	"randomnoisy": RandomNoisy,
+	"shuffle":     Shuffle,
+	"smear":       Smear,
 	"wave":        Wave,
 }
 
