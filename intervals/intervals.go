@@ -11,6 +11,7 @@ import (
 
 var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
 	"shuffle":     Shuffle,
+	"smear":       Smear,
 	"row":         Row,
 	"random":      Random,
 	"randomnoisy": RandomNoisy,
@@ -42,13 +43,31 @@ func Shuffle(interval []types.PixelWithMask) {
 	})
 }
 
-func Smear(interval []types.PixelWithMask)
+func Smear(interval []types.PixelWithMask) {
+	//comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
+	intervalLength := len(interval)
+	smearLength := shared.Config.SectionLength
+	grabbedPixel := interval[0]
+
+	for grabbedPixelIdx := 0; grabbedPixelIdx < intervalLength; grabbedPixelIdx += smearLength {
+		/// MAYBE: use comparator to determine whether to grab a new pixel?
+		/// would free up randomness to affect smearLen
+		/// it doesnt look that good tho, and is pretty uncontrollable
+		if mathRand.Float32() < shared.Config.Randomness {
+			grabbedPixel = interval[grabbedPixelIdx] /// CMERE
+		}
+
+		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
+		/// Is this the best way to do this?
+		for i := grabbedPixelIdx; i < iMax; i++ {
+			interval[i] = grabbedPixel
+		}
+
+		grabbedPixelIdx += smearLength
+	}
+}
 
 /// TODO:
-/// 1 - grab pixel
-/// 2 - copy+paste along SectionLength, making a band of a single color
-/// 3 - if mathRand.Float32() < shared.Config.Randomness, go to 1
-/// 4 - otherwise, keep the pixel and go to 2
 
 func Row(interval []types.PixelWithMask) {
 	if mathRand.Float32() > shared.Config.Randomness {
