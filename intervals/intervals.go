@@ -46,7 +46,6 @@ func Shuffle(interval []types.PixelWithMask) {
 // TODO
 // WHY doesnt rotation work??? :<
 func Smear(interval []types.PixelWithMask) {
-	//comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
 	intervalLength := len(interval)
 	if intervalLength == 0 {
 		return
