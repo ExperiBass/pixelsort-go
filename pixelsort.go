@@ -257,7 +257,7 @@ func main() {
 					if inputLen > 1 {
 						out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
 					} else if out == "" {
-						out = "sorted"
+						out = fmt.Sprintf("%s.%s", "sorted", fileSuffix)
 					}
 					//out = fmt.Sprintf("%s.%s", out, fileSuffix)
 					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
