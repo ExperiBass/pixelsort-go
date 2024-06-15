@@ -43,11 +43,16 @@ func Shuffle(interval []types.PixelWithMask) {
 	})
 }
 
+// TODO
+// WHY doesnt rotation work??? :<
 func Smear(interval []types.PixelWithMask) {
-	comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
+	//comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
 	intervalLength := len(interval)
+	if intervalLength == 0 {
+		return
+	}
 	smearLength := shared.Config.SectionLength
-	grabbedPixel := interval[0]
+	grabbedPixel := interval[0] /// TODO: why is this empty with an angle?
 
 	for grabbedPixelIdx := 0; grabbedPixelIdx < intervalLength; grabbedPixelIdx += smearLength {
 		if mathRand.Float32() < shared.Config.Randomness {
@@ -57,9 +62,9 @@ func Smear(interval []types.PixelWithMask) {
 		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
 		/// Is this the best way to do this?
 		for i := grabbedPixelIdx; i < iMax; i++ {
-			if comparator(interval[i], interval[min(i+1, intervalLength-1)]) != 0 {
-				interval[i] = grabbedPixel
-			}
+			//if comparator(interval[i], interval[min(i+1, intervalLength-1)]) != 0 {
+			interval[i] = grabbedPixel
+			//}
 		}
 	}
 }
