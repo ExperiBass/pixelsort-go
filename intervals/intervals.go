@@ -44,7 +44,7 @@ func Shuffle(interval []types.PixelWithMask) {
 }
 
 func Smear(interval []types.PixelWithMask) {
-	//comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
+	comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
 	intervalLength := len(interval)
 	smearLength := shared.Config.SectionLength
 	grabbedPixel := interval[0]
@@ -60,10 +60,10 @@ func Smear(interval []types.PixelWithMask) {
 		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
 		/// Is this the best way to do this?
 		for i := grabbedPixelIdx; i < iMax; i++ {
-			interval[i] = grabbedPixel
+			if comparator(interval[i], interval[i+1]) != 0 {
+				interval[i] = grabbedPixel
+			}
 		}
-
-		grabbedPixelIdx += smearLength
 	}
 }
 
