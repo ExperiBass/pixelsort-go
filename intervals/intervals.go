@@ -51,21 +51,10 @@ func Smear(interval []types.PixelWithMask) {
 	if intervalLength == 0 {
 		return
 	}
-	smearLength := shared.Config.SectionLength
-	grabbedPixel := interval[0] /// TODO: why is this empty with an angle?
+	smearedPixel := interval[0] /// TODO: why is this empty with an angle?
 
-	for grabbedPixelIdx := 0; grabbedPixelIdx < intervalLength; grabbedPixelIdx += smearLength {
-		if mathRand.Float32() < shared.Config.Randomness {
-			grabbedPixel = interval[grabbedPixelIdx] /// CMERE
-		}
-
-		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
-		/// Is this the best way to do this?
-		for i := grabbedPixelIdx; i < iMax; i++ {
-			//if comparator(interval[i], interval[min(i+1, intervalLength-1)]) != 0 {
-			interval[i] = grabbedPixel
-			//}
-		}
+	for idx := range interval {
+		interval[idx] = smearedPixel
 	}
 }
 
