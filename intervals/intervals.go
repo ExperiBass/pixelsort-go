@@ -50,9 +50,6 @@ func Smear(interval []types.PixelWithMask) {
 	grabbedPixel := interval[0]
 
 	for grabbedPixelIdx := 0; grabbedPixelIdx < intervalLength; grabbedPixelIdx += smearLength {
-		/// MAYBE: use comparator to determine whether to grab a new pixel?
-		/// would free up randomness to affect smearLen
-		/// it doesnt look that good tho, and is pretty uncontrollable
 		if mathRand.Float32() < shared.Config.Randomness {
 			grabbedPixel = interval[grabbedPixelIdx] /// CMERE
 		}
@@ -60,7 +57,7 @@ func Smear(interval []types.PixelWithMask) {
 		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
 		/// Is this the best way to do this?
 		for i := grabbedPixelIdx; i < iMax; i++ {
-			if comparator(interval[i], interval[min(i+1, iMax-1)]) != 0 {
+			if comparator(interval[i], interval[min(i+1, intervalLength-1)]) != 0 {
 				interval[i] = grabbedPixel
 			}
 		}
