@@ -60,7 +60,7 @@ func Smear(interval []types.PixelWithMask) {
 		iMax := min(grabbedPixelIdx+smearLength, intervalLength)
 		/// Is this the best way to do this?
 		for i := grabbedPixelIdx; i < iMax; i++ {
-			if comparator(interval[i], interval[i+1]) != 0 {
+			if comparator(interval[i], interval[min(i+1, iMax-1)]) != 0 {
 				interval[i] = grabbedPixel
 			}
 		}
