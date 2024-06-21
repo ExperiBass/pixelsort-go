@@ -45,6 +45,7 @@ func Shuffle(interval []types.PixelWithMask) {
 
 // TODO
 // WHY doesnt rotation work??? :<
+// it DOES work, but only if the smear doesnt touch the edge
 func Smear(interval []types.PixelWithMask) {
 	intervalLength := len(interval)
 	if intervalLength == 0 {
@@ -191,14 +192,12 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 					break
 				}
 				if interval[endMaskIdx].Mask != 255 || !(pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0) {
-					//println(interval[endMaskIdx-1].Mask, interval[endMaskIdx].Mask, interval[endMaskIdx+1].Mask)
 					break
 				}
 				endMaskIdx++
 			}
 
 			stretch := types.Stretch{Start: baseIdx, End: j}
-			//stretches[len(stretches)] = stretch
 			stretches = append(stretches, stretch)
 
 			/// jump past the mask and continue
@@ -207,8 +206,6 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 		}
 	}
 	/// and then add any remaning unmasked pixels
-	//stretches[0] = types.Stretch{Start: baseIdx, End: len(interval)}
 	stretches = append(stretches, types.Stretch{Start: baseIdx, End: len(interval)})
-	//fmt.Printf("stretches: %v\n", stretches)
 	return stretches
 }
