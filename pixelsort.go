@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/jpeg"
 	"image/png"
 	"log"
 	"math"
@@ -251,15 +250,13 @@ func main() {
 
 					in := inputs[i]
 					out := output
-					splitFileName := strings.Split(inputs[0], ".")
-					fileSuffix := splitFileName[len(splitFileName)-1] // MAYBE: just use .png and .jpg
 
 					if inputLen > 1 {
-						out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
+						out = fmt.Sprintf("frame%04d.png", i)
 					} else if out == "" {
-						out = fmt.Sprintf("%s.%s", "sorted", fileSuffix)
+						out = fmt.Sprintf("%s.png", "sorted")
 					}
-					//out = fmt.Sprintf("%s.%s", out, fileSuffix)
+
 					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
 					maskIdx := min(i, maskLen-1)
 					err := sortingTime(in, out, masks[maskIdx])
@@ -351,8 +348,8 @@ func sortingTime(input, output, maskpath string) error {
 	}
 
 	/// load stretches
-	stretches := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
-
+	stretches, data := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
+	println(data)
 	/// more whitespace
 	/// im not gonna rant again
 	/// just
@@ -373,7 +370,7 @@ func sortingTime(input, output, maskpath string) error {
 	/// like fuck dude i just want some fucking whitespace, its not that big of a deal
 
 	/// now write
-	outputImg := patterns.Saver[fmt.Sprintf("%ssave", shared.Config.Pattern)](stretches, img.Bounds())
+	outputImg := patterns.Saver[fmt.Sprintf("%ssave", shared.Config.Pattern)](stretches, img.Bounds(), data)
 
 	/// ET AT OR
 	if math.Mod(shared.Config.Angle, 360) != 0 {
@@ -391,17 +388,9 @@ func sortingTime(input, output, maskpath string) error {
 	}
 
 	/// spit the result out
-	/// MAYBE: arbitrary extensions?
-	if strings.HasSuffix(strings.ToLower(input), "jpg") || strings.HasSuffix(strings.ToLower(input), "jpeg") {
-		options := jpeg.Options{
-			Quality: 100,
-		}
-		jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &options)
-	} else {
-		pngcoder := png.Encoder{
-			CompressionLevel: png.NoCompression,
-		}
-		pngcoder.Encode(f, outputImg)
+	pngcoder := png.Encoder{
+		CompressionLevel: png.DefaultCompression,
 	}
+	pngcoder.Encode(f, outputImg)
 	return nil
 }

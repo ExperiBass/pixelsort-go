@@ -145,7 +145,7 @@ func randBetween(max int, min_opt ...int) int {
 	if len(min_opt) > 0 {
 		min = min_opt[0]
 	}
-	randNum := mathRand.Float64() // * float64(shared.Config.Randomness)
+	randNum := mathRand.Float64()
 	if min != 0 {
 		return int(math.Floor(randNum*float64(((+max)+1)-(+min)))) + (+min)
 	}

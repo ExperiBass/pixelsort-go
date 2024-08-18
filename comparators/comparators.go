@@ -113,7 +113,6 @@ func checkPixel(pixel types.PixelWithMask) bool {
 func calculateLightness(pixel types.PixelWithMask) float32 {
 	// 299, 587, 114
 	return float32(pixel.R)*0.29 + float32(pixel.G)*0.59 + float32(pixel.B)*0.11
-	//return int16(pixel.R)*29 + int16(pixel.G)*59 + int16(pixel.B)*11
 }
 
 func calculateHue(pixel types.PixelWithMask) float32 {
