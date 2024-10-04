@@ -28,6 +28,7 @@ func main() {
 
 	/// ...ugh
 	/// too lazy to do patterns
+	/// its hardcoded idc, theres only 2 (half)-functional
 	for k := range intervals.SortingFunctionMappings {
 		validIntervals = append(validIntervals, k)
 	}
@@ -56,7 +57,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "pattern",
 				Aliases: []string{"p"},
-				Usage:   "`pattern` loader to use",
+				Usage:   "`pattern` loader to use [row, spiral]",
 				Value:   "row",
 			},
 			&cli.StringFlag{
@@ -73,14 +74,25 @@ func main() {
 				Name:    "interval",
 				Value:   "row",
 				Aliases: []string{"I"},
-				/// TODO: print valid intervals and comparators
-				Usage: fmt.Sprintf("interval `func`tion to use\nFunctions: %s\n", strings.Join(validIntervals, ", ")),
+				Usage: fmt.Sprintf("interval `func`tion to use [%s]", strings.Join(validIntervals, ", ")),
+				Action: func(ctx *cli.Context, v string) error {
+					if !slices.Contains(validIntervals, v) {
+						return fmt.Errorf(fmt.Sprintf("invalid interval \"%s\" [%s]", v, strings.Join(validIntervals, ", ")))
+					}
+					return nil
+				},
 			},
 			&cli.StringFlag{
 				Name:    "comparator",
 				Value:   "lightness",
 				Aliases: []string{"c"},
-				Usage:   fmt.Sprintf("comparison `func`tion to use\nFunctions: %s\n", strings.Join(validComparators, ", ")),
+				Usage:   fmt.Sprintf("comparison `func`tion to use [%s]", strings.Join(validComparators, ", ")),
+				Action: func(ctx *cli.Context, v string) error {
+					if !slices.Contains(validComparators, v) {
+						return fmt.Errorf(fmt.Sprintf("invalid comparator \"%s\" [%s]", v, strings.Join(validComparators, ", ")))
+					}
+					return nil
+				},
 			},
 			&cli.Float64Flag{
 				Name:    "lower_threshold",
@@ -89,7 +101,7 @@ func main() {
 				Usage:   "pixels below this `thresh`old won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
-						return fmt.Errorf("lower_threshold is out of range [0.0-1.0]")
+						return fmt.Errorf("lower_threshold is outside of range [0.0-1.0]")
 					}
 					return nil
 				},
@@ -101,7 +113,7 @@ func main() {
 				Usage:   "pixels above this `thresh`old won't be sorted",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
-						return fmt.Errorf("upper_threshold is out of range [0.0-1.0]")
+						return fmt.Errorf("upper_threshold is outside of range [0.0-1.0]")
 					}
 					return nil
 				},
@@ -111,7 +123,6 @@ func main() {
 				Value:   0.0,
 				Aliases: []string{"a"},
 				Usage:   "rotate the image by `deg`rees, pos or neg",
-				// TODO: clamp to -360 - 360
 			},
 			&cli.IntFlag{
 				Name:    "section_length",
@@ -130,7 +141,7 @@ func main() {
 				Usage: "used to determine which [row]s to skip and how wild [wave] edges should be",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
-						return fmt.Errorf("randomness is out of range [0.0-1.0]")
+						return fmt.Errorf("randomness is outside of range [0.0-1.0]")
 					}
 					return nil
 				},
@@ -142,7 +153,6 @@ func main() {
 				Usage:   "Sort images in parallel across `N` threads",
 			},
 		},
-		//Commands: []*cli.Command{},
 		Action: func(ctx *cli.Context) error {
 			inputs := ctx.StringSlice("input")
 			output := ctx.String("output")
@@ -179,13 +189,13 @@ func main() {
 
 				inputfile, err := os.Open(input)
 				if err != nil {
-					return cli.Exit("Input could not be opened", 1)
+					return cli.Exit(fmt.Sprintf("%s could not be opened", input), 1)
 				}
 				defer inputfile.Close()
 
 				inputStat, err := inputfile.Stat()
 				if err != nil {
-					return cli.Exit(fmt.Sprintf("Error getting input file stats: %s", err), 1)
+					return cli.Exit(fmt.Sprintf("Error getting %s file stats: %s", input, err), 1)
 				}
 				inputfile = nil
 
@@ -203,12 +213,12 @@ func main() {
 			if mask != "" {
 				maskfile, err := os.Open(mask)
 				if err != nil {
-					return cli.Exit("Mask could not be opened", 1)
+					return cli.Exit(fmt.Sprintf("Mask %s could not be opened", mask), 1)
 				}
 				defer maskfile.Close()
 				maskStat, err := maskfile.Stat()
 				if err != nil {
-					return cli.Exit(fmt.Sprintf("Error getting mask stats: %s", err), 1)
+					return cli.Exit(fmt.Sprintf("Error getting mask %s file stats: %s", mask, err), 1)
 				}
 				maskfile = nil
 				if maskStat.IsDir() {
@@ -348,6 +358,11 @@ func sortingTime(input, output, maskpath string) error {
 	}
 
 	/// load stretches
+	loader := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)]
+	if loader == nil {
+		fmt.Println("invalid pattern")
+		return cli.Exit("invalid pattern", 2)
+	}
 	stretches, data := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
 	println(data)
 	/// more whitespace
