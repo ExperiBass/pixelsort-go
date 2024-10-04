@@ -1,8 +1,10 @@
+# pixelsort_go
 pixelsorter (+ cli) written in golang
 rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
 furst time using go, might be cursed
+following [bsd sysexits convention](https://man.freebsd.org/cgi/man.cgi?query=sysexits) for error codes
 
-# features
+## features
 - row and spiral patterns
 - sort with a mask
 - sort images in parallel
@@ -11,11 +13,11 @@ furst time using go, might be cursed
 - sort in reverse
 - rotation
 
-# wanted features
+## wanted features
 - would like to mix and match thresholds (sort by red with saturation threshold, or sort by sat with darkness threshold)
 - more patterns; seam carving looks cool
 
-# examples
+## examples
 **Original**
 ![webb picture-of-the-month 2023/10](https://cdn.esawebb.org/archives/images/screen/potm2310a.jpg) - [src: ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team](https://esawebb.org/images/potm2310a/)
 

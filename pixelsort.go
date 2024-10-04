@@ -133,11 +133,13 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "reverse",
 				Value: false,
+				Aliases: []string{"r"},
 				Usage: "reverse the sort direction",
 			},
 			&cli.Float64Flag{
 				Name:  "randomness",
 				Value: 0.5,
+				Aliases: []string{"R"},
 				Usage: "used to determine the perccentage of [row]s to skip and how wild [wave] edges should be, among other things",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
@@ -267,7 +269,7 @@ func main() {
 						out = fmt.Sprintf("%s.png", "sorted")
 					}
 
-					println(fmt.Sprintf("Loading image %d (%q -> %q)...", i+1, in, out))
+					println(fmt.Sprintf("Loading image %d (%s -> %s)...", i+1, in, out))
 					maskIdx := min(i, maskLen-1)
 					err := sortingTime(in, out, masks[maskIdx])
 					if err != nil {
@@ -289,7 +291,7 @@ func readdirForImages(input string) ([]string, error) {
 	if err != nil {
 		return nil, cli.Exit("Couldn't read input dir", 1)
 	}
-	inputs := make([]string, len(files)) // allocate enough space
+	inputs := make([]string, len(files)) /// allocate enough space
 	for idx, file := range files {
 		if !file.IsDir() && file.Type().IsRegular() {
 			name := file.Name()
@@ -404,7 +406,7 @@ func sortingTime(input, output, maskpath string) error {
 
 	/// spit the result out
 	pngcoder := png.Encoder{
-		CompressionLevel: png.DefaultCompression,
+		CompressionLevel: png.NoCompression,
 	}
 	pngcoder.Encode(f, outputImg)
 	return nil
