@@ -133,12 +133,12 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "reverse",
 				Value: false,
-				Usage: "reverse sort, or not.",
+				Usage: "reverse the sort direction",
 			},
 			&cli.Float64Flag{
 				Name:  "randomness",
-				Value: 1.0,
-				Usage: "used to determine which [row]s to skip and how wild [wave] edges should be",
+				Value: 0.5,
+				Usage: "used to determine the perccentage of [row]s to skip and how wild [wave] edges should be, among other things",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
 						return fmt.Errorf("randomness is outside of range [0.0-1.0]")
@@ -251,7 +251,7 @@ func main() {
 			})
 
 			/// create workgroup
-			wg := sizedwaitgroup.New(threadCount)
+			wg := sizedwaitgroup.New(+threadCount)
 
 			for i := 0; i < inputLen; i++ {
 				wg.Add()

@@ -1,14 +1,13 @@
-pixelsorter (+ cli) written in golang  
-used my (node)js implementation as reference, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference  
-not at parity; no sorter/comparator validation, patterns/intervals/comparators arent listed in help  
-furst time using go, might be cursed  
+pixelsorter (+ cli) written in golang
+rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
+furst time using go, might be cursed
 
 # features
 - row and spiral patterns
-- sorth with a mask
-- sort multiple images at once
+- sort with a mask
+- sort images in parallel
 - sort by lightness, hue, saturation, and r/g/b
-- shuffle pixels, sort in waves, randomly, or do a row sort
+- shuffle pixels, sort in waves, random lengths, or smear instead
 - sort in reverse
 - rotation
 
@@ -17,26 +16,26 @@ furst time using go, might be cursed
 - more patterns; seam carving looks cool
 
 # examples
-**Original**  
-![webb picture-of-the-month 2023/10](https://cdn.esawebb.org/archives/images/screen/potm2310a.jpg) - [src: ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team](https://esawebb.org/images/potm2310a/)  
+**Original**
+![webb picture-of-the-month 2023/10](https://cdn.esawebb.org/archives/images/screen/potm2310a.jpg) - [src: ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team](https://esawebb.org/images/potm2310a/)
 
-**Mask**  
-![mask](./examples/mask.jpg)  
+**Mask**
+![mask](./examples/mask.jpg)
 
-**Random sort**  
+**Random sort**
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --upper_threshold 0.4 --lower_threshold 0.2 --comparator saturation --angle 30 --randomness 0.4 --interval randomnoisy --output ./examples/webb-sort.jpg`
 ![randomsort](./examples/webb-random-angled.jpg)
 
-**Basic row sort w/ default options & mask**  
+**Basic row sort w/ default options & mask**
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --mask ./examples/webb-mask.jpg --output ./examples/webb-sort.jpg`
-![masked row sort](./examples/webb-row-masked.jpg)  
+![masked row sort](./examples/webb-row-masked.jpg)
 
-**Spiral sort using most options & mask**  
+**Spiral sort using most options & mask**
 `pixelsort_go --input ~/Downloads/potm2310a.jpg --mask ./examples/webb-mask.jpg --pattern spiral --interval wave --randomness 0.4 --comparator saturation --section_length 400 --output ./examples/webb-spiral.jpg`
-![masked spiral sort](./examples/webb-spiral-masked.jpg)  
-did you know webb and hubble pics are cc4?  
+![masked spiral sort](./examples/webb-spiral-masked.jpg)
+did you know webb and hubble pics are cc4?
 
-"elapsed" is time spent actually sorting  
+"elapsed" is time spent actually sorting
 ```
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -o ./benchmark
 Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:60 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
