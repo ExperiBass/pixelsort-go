@@ -126,7 +126,7 @@ func main() {
 			},
 			&cli.IntFlag{
 				Name:    "section_length",
-				Value:   60,
+				Value:   69,
 				Aliases: []string{"L"},
 				Usage:   "The base `len`gth of each slice",
 			},
