@@ -2,7 +2,6 @@
 pixelsorter (+ cli) written in golang
 rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
 furst time using go, might be cursed
-following [bsd sysexits convention](https://man.freebsd.org/cgi/man.cgi?query=sysexits) for error codes
 
 ## features
 - row and spiral patterns
