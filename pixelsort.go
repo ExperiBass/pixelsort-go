@@ -41,13 +41,13 @@ func main() {
 	app := &cli.App{
 		Name:                   "pixelsort_go",
 		Usage:                  "Organize pixels.",
-		Version:                "1.0.0",
+		Version:                "0.6.0",
 		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
 				Name:     "input",
 				Aliases:  []string{"i"},
-				Usage:    "`image`(s) to sort, or a dir full of images",
+				Usage:    "`image`(s) to sort, or a dir full of images (supported: png, jpg)",
 				Required: true,
 				Action: func(ctx *cli.Context, v []string) error {
 					if len(v) < 1 {
