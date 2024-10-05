@@ -1,6 +1,8 @@
 # pixelsort_go
 pixelsorter cli written in golang
+
 rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
+
 furst time using go, might be cursed
 
 ## features
@@ -16,7 +18,20 @@ furst time using go, might be cursed
 - would like to mix and match thresholds (sort by red with saturation threshold, or sort by sat with darkness threshold)
 - more patterns; seam carving looks cool
 
-## examples
+## install
+### with go
+```sh
+go install github.com/experibass/pixelsort-go@latest
+```
+### from source
+```sh
+git clone https://github.com/experibass/pixelsort-go.git
+cd pixelsort-go
+go build
+go install
+```
+
+## examples/usage
 **Original**
 ![webb picture-of-the-month 2023/10](https://cdn.esawebb.org/archives/images/screen/potm2310a.jpg) - [src: ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team](https://esawebb.org/images/potm2310a/)
 
@@ -36,6 +51,7 @@ furst time using go, might be cursed
 ![masked spiral sort](./examples/webb-spiral-masked.jpg)
 did you know webb and hubble pics are cc4?
 
+## "benchmark"
 "elapsed" is time spent actually sorting
 ```
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -o ./benchmark
