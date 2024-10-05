@@ -1,5 +1,5 @@
 # pixelsort_go
-pixelsorter (+ cli) written in golang
+pixelsorter cli written in golang
 rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
 furst time using go, might be cursed
 

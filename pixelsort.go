@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"image/jpeg"
 	"image/png"
 	"log"
 	"math"
@@ -13,6 +14,7 @@ import (
 	"pixelsort_go/intervals"
 	"pixelsort_go/patterns"
 	"pixelsort_go/shared"
+	"runtime/pprof"
 	"slices"
 	"strings"
 	"time"
@@ -39,7 +41,7 @@ func main() {
 	app := &cli.App{
 		Name:                   "pixelsort_go",
 		Usage:                  "Organize pixels.",
-		Version:                "v1.0.0",
+		Version:                "1.0.0",
 		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
@@ -74,7 +76,7 @@ func main() {
 				Name:    "interval",
 				Value:   "row",
 				Aliases: []string{"I"},
-				Usage: fmt.Sprintf("interval `func`tion to use [%s]", strings.Join(validIntervals, ", ")),
+				Usage:   fmt.Sprintf("interval `func`tion to use [%s]", strings.Join(validIntervals, ", ")),
 				Action: func(ctx *cli.Context, v string) error {
 					if !slices.Contains(validIntervals, v) {
 						return fmt.Errorf(fmt.Sprintf("invalid interval \"%s\" [%s]", v, strings.Join(validIntervals, ", ")))
@@ -131,16 +133,16 @@ func main() {
 				Usage:   "The base `len`gth of each slice",
 			},
 			&cli.BoolFlag{
-				Name:  "reverse",
-				Value: false,
+				Name:    "reverse",
+				Value:   false,
 				Aliases: []string{"r"},
-				Usage: "reverse the sort direction",
+				Usage:   "reverse the sort direction",
 			},
 			&cli.Float64Flag{
-				Name:  "randomness",
-				Value: 0.5,
+				Name:    "randomness",
+				Value:   0.5,
 				Aliases: []string{"R"},
-				Usage: "used to determine the perccentage of [row]s to skip and how wild [wave] edges should be, among other things",
+				Usage:   "used to determine the perccentage of [row]s to skip and how wild [wave] edges should be, among other things",
 				Action: func(ctx *cli.Context, v float64) error {
 					if v < 0.0 || v > 1.0 {
 						return fmt.Errorf("randomness is outside of range [0.0-1.0]")
@@ -153,6 +155,11 @@ func main() {
 				Value:   1,
 				Aliases: []string{"t"},
 				Usage:   "Sort images in parallel across `N` threads",
+			},
+			&cli.BoolFlag{
+				Name:  "profile",
+				Value: false,
+				Usage: "use pprof to profile the program and spit out a .prof",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
@@ -172,16 +179,18 @@ func main() {
 			threadCount := ctx.Int("threads")
 
 			/// profiling
-			/*masked := "unmasked"
-			if mask != "" || len(masks) > 0 {
-				masked = "masked"
+			if ctx.Bool("profile") {
+				masked := "unmasked"
+				if mask != "" || len(masks) > 0 {
+					masked = "masked"
+				}
+				profileFile, err := os.Create(fmt.Sprintf("cpuprofile-%s-%s-%s-%s.prof", shared.Config.Pattern, shared.Config.Interval, shared.Config.Comparator, masked))
+				if err != nil {
+					log.Fatal(err)
+				}
+				pprof.StartCPUProfile(profileFile)
+				defer pprof.StopCPUProfile()
 			}
-			profileFile, err := os.Create(fmt.Sprintf("cpuprofile-%s-%s-%s.prof", shared.Config.Comparator, shared.Config.Sorter, masked))
-			if err != nil {
-				log.Fatal(err)
-			}
-			pprof.StartCPUProfile(profileFile)
-			defer pprof.StopCPUProfile()*/
 
 			/// this can be done better but im lazy and braindead
 			/// MAYBE: accept multiple dirs? pop them and append contents?
@@ -262,11 +271,13 @@ func main() {
 
 					in := inputs[i]
 					out := output
+					splitFileName := strings.Split(inputs[0], ".")
+					fileSuffix := splitFileName[len(splitFileName)-1]
 
 					if inputLen > 1 {
-						out = fmt.Sprintf("frame%04d.png", i)
+						out = fmt.Sprintf("frame%04d.%s", i, fileSuffix)
 					} else if out == "" {
-						out = fmt.Sprintf("%s.png", "sorted")
+						out = fmt.Sprintf("%s.%s", "sorted", fileSuffix)
 					}
 
 					println(fmt.Sprintf("Loading image %d (%s -> %s)...", i+1, in, out))
@@ -310,14 +321,15 @@ func readdirForImages(input string) ([]string, error) {
 func sortingTime(input, output, maskpath string) error {
 	file, err := os.Open(input)
 	if err != nil {
-		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be opened", input), 1)
+		return cli.Exit(fmt.Sprintf("Input %q could not be opened", input), 1)
 	}
 	defer file.Close()
-	rawImg, _, err := image.Decode(file)
+
+	rawImg, format, err := image.Decode(file)
 	if err != nil {
 		println(err.Error())
 		// for some reason this error specficially doesnt display?
-		return cli.Exit(fmt.Sprintf("Input \"%s\" could not be decoded", input), 1)
+		return cli.Exit(fmt.Sprintf("Input %q could not be decoded", input), 1)
 	}
 
 	/// RO TA TE
@@ -341,13 +353,13 @@ func sortingTime(input, output, maskpath string) error {
 	if maskpath != "" {
 		maskFile, err := os.Open(maskpath)
 		if err != nil {
-			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be opened", maskpath), 1)
+			return cli.Exit(fmt.Sprintf("Mask %q could not be opened", maskpath), 1)
 		}
 		defer maskFile.Close()
 
 		rawMask, _, err := image.Decode(maskFile)
 		if err != nil {
-			return cli.Exit(fmt.Sprintf("Mask \"%s\" could not be decoded", maskpath), 1)
+			return cli.Exit(fmt.Sprintf("Mask %q could not be decoded", maskpath), 1)
 		}
 
 		/// RO TA TE (again)
@@ -365,8 +377,7 @@ func sortingTime(input, output, maskpath string) error {
 		fmt.Println("invalid pattern")
 		return cli.Exit("invalid pattern", 2)
 	}
-	stretches, data := patterns.Loader[fmt.Sprintf("%sload", shared.Config.Pattern)](*img, *mask)
-	println(data)
+	stretches, data := loader(*img, *mask)
 	/// more whitespace
 	/// im not gonna rant again
 	/// just
@@ -405,9 +416,15 @@ func sortingTime(input, output, maskpath string) error {
 	}
 
 	/// spit the result out
-	pngcoder := png.Encoder{
-		CompressionLevel: png.NoCompression,
+	if format == "jpeg" {
+			jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &jpeg.Options{
+				Quality: 100,
+			})
+		} else {
+			pngcoder := png.Encoder{
+				CompressionLevel: png.NoCompression,
+			}
+			pngcoder.Encode(f, outputImg)
 	}
-	pngcoder.Encode(f, outputImg)
 	return nil
 }
