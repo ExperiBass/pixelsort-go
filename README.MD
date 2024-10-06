@@ -19,10 +19,6 @@ furst time using go, might be cursed
 - more patterns; seam carving looks cool
 
 ## install
-### with go
-```sh
-go install github.com/experibass/pixelsort-go@latest
-```
 ### from source
 ```sh
 git clone https://github.com/experibass/pixelsort-go.git
