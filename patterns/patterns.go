@@ -7,19 +7,19 @@ import (
 	"pixelsort_go/types"
 )
 
-var Loader = map[string]func(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any){
+var Loader = map[string]func(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any){
 	/// theres a better way, right? please tell me im dumb
 	"rowload":    LoadRow,
 	"spiralload": LoadSpiral,
 	"seamload":   LoadSeamCarving,
 }
-var Saver = map[string]func(rows [][]types.PixelWithMask, dims image.Rectangle, data ...any) *image.RGBA{
+var Saver = map[string]func(rows *[][]types.PixelWithMask, dims image.Rectangle, data ...any) *image.RGBA{
 	"rowsave":    SaveRow,
 	"spiralsave": SaveSpiral,
 	"seamsave":   SaveSeamCarving,
 }
 
-func LoadRow(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any) {
+func LoadRow(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any) {
 	dims := img.Bounds().Max
 	/// split image into rows
 	rows := make([][]types.PixelWithMask, dims.Y)
@@ -34,12 +34,12 @@ func LoadRow(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any) {
 		}
 		rows[y] = row
 	}
-	return rows, nil
+	return &rows, nil
 }
-func SaveRow(rows [][]types.PixelWithMask, dims image.Rectangle, _ ...any) *image.RGBA {
+func SaveRow(rows *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) *image.RGBA {
 	outputImg := image.NewRGBA(dims)
-	for i := 0; i < len(rows); i++ {
-		row := rows[i]
+	for i := 0; i < len(*rows); i++ {
+		row := (*rows)[i]
 		for j := 0; j < len(row); j++ {
 			currPixWithMask := row[j]
 			pixel := color.RGBA{currPixWithMask.R, currPixWithMask.G, currPixWithMask.B, currPixWithMask.A}
@@ -51,11 +51,11 @@ func SaveRow(rows [][]types.PixelWithMask, dims image.Rectangle, _ ...any) *imag
 
 // https://github.com/jeffThompson/PixelSorting/blob/master/SpiralSortPixels/SpiralSortPixels.pde
 // prayge, i'm not a mathy fomx
-// this also half-works; when giving a mask, or skipping the sorting step, the image comes out
+// this also only half-works; when giving a mask, or skipping the sorting step, the image comes out
 // missing half its pixels in all but one direction (usually the left side) and the
 // remaining three parts are flipped
 // only on images with even dimensions tho!!!! wheeeee!!!!!!!!!
-func LoadSpiral(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any) {
+func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any) {
 	dims := img.Bounds().Max
 	width := dims.X
 	height := dims.Y
@@ -96,16 +96,16 @@ func LoadSpiral(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any) 
 		seams = append(seams, seam)
 	}
 
-	return seams, nil
+	return &seams, nil
 }
-func SaveSpiral(seams [][]types.PixelWithMask, dims image.Rectangle, _ ...any) *image.RGBA {
+func SaveSpiral(seams *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) *image.RGBA {
 	outputImg := image.NewRGBA(dims)
 
 	width := dims.Max.X
 	height := dims.Max.Y
 
 	for offset := 0; offset < height/2; offset++ {
-		seam := seams[offset]
+		seam := (*seams)[offset]
 		index := 0
 
 		// top
@@ -157,7 +157,7 @@ func SaveSpiral(seams [][]types.PixelWithMask, dims image.Rectangle, _ ...any) *
 }
 
 // https://github.com/jeffThompson/PixelSorting/tree/master/SortThroughSeamCarving/SortThroughSeamCarving
-func LoadSeamCarving(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, any) {
+func LoadSeamCarving(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any) {
 	dims := img.Bounds()
 
 	/// grayscale
@@ -201,17 +201,17 @@ func LoadSeamCarving(img image.RGBA, mask image.RGBA) ([][]types.PixelWithMask, 
 		//seams = append(seams, seam)
 	}
 	/// TODO: figure out how to persist path for saving
-	return seams, path
+	return &seams, path
 }
-func SaveSeamCarving(seams [][]types.PixelWithMask, dims image.Rectangle, data ...any) *image.RGBA {
+func SaveSeamCarving(seams *[][]types.PixelWithMask, dims image.Rectangle, data ...any) *image.RGBA {
 	outputImg := image.NewRGBA(dims)
 	path := data[0].([]int) /// ugh
 	width := dims.Max.X
 	//height := dims.Max.Y
 	byteCount := len(outputImg.Pix)
-	seamLen := len(seams)
+	seamLen := len(*seams)
 	for rowI := 0; rowI < seamLen; rowI++ {
-		seam := seams[rowI]
+		seam := (*seams)[rowI]
 		for i := 0; i < width; i++ {
 			seamLen := len(seam)
 			/// write out

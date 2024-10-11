@@ -377,7 +377,7 @@ func sortingTime(input, output, maskpath string) error {
 		fmt.Println("invalid pattern")
 		return cli.Exit("invalid pattern", 2)
 	}
-	stretches, data := loader(*img, *mask)
+	stretches, data := loader(img, mask)
 	/// more whitespace
 	/// im not gonna rant again
 	/// just
@@ -386,8 +386,8 @@ func sortingTime(input, output, maskpath string) error {
 	println(fmt.Sprintf("Sorting %s...", input))
 	/// pass the rows to the sorter
 	start := time.Now()
-	for i := 0; i < len(stretches); i++ {
-		row := stretches[i]
+	for i := 0; i < len(*stretches); i++ {
+		row := (*stretches)[i]
 		intervals.Sort(row)
 	}
 	end := time.Now()

@@ -105,14 +105,14 @@ func checkPixel(pixel types.PixelWithMask) bool {
 	/// skip if beyond thresholds
 	/// FIXME: figure out why thresholds with spiral results in holes in the image
 	lightness := calculateLightness(pixel)
-	if lightness < shared.Config.Thresholds.Lower*255 || lightness > shared.Config.Thresholds.Upper*255 {
+	if lightness < shared.Config.Thresholds.Lower * 255 || lightness > shared.Config.Thresholds.Upper * 255 {
 		return true
 	}
 	return false
 }
 func calculateLightness(pixel types.PixelWithMask) float32 {
 	// 299, 587, 114
-	return float32(pixel.R)*0.29 + float32(pixel.G)*0.59 + float32(pixel.B)*0.11
+	return float32(pixel.R) * 0.29 + float32(pixel.G) * 0.59 + float32(pixel.B) * 0.11
 }
 
 func calculateHue(pixel types.PixelWithMask) float32 {
