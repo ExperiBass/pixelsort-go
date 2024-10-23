@@ -1,7 +1,7 @@
 # pixelsort_go
 pixelsorter cli written in golang
 
-rewritten from my nodejs implementation, which uses [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
+rewritten from my nodejs implementation, which used [satyarth/pixelsort](https://github.com/satyarth/pixelsort/) as reference
 
 furst time using go, might be cursed
 
@@ -49,20 +49,21 @@ did you know webb and hubble pics are cc4?
 
 ## "benchmark"
 "elapsed" is time spent actually sorting
+src img is "large jpg" from [esawebb](https://esawebb.org/images/potm2310a/)
 ```
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -o ./benchmark
 Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:69 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
 Loading image 1 (/home/________/Downloads/potm2310a.jpg -> ./benchmark)...
 Sorting /home/________/Downloads/potm2310a.jpg...
-./benchmark elapsed: 167ms
+./benchmark elapsed: 2.014s
 Writing ./benchmark...
-0:00.22 real 0.20 usermode 98% 16088 Kb mem
+0:02.68 real 2.64 usermode 99% 93240 Kb mem
 
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -m ./examples/mask.jpg -o ./benchmark
 Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:69 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
 Loading image 1 (/home/________/Downloads/potm2310a.jpg -> ./benchmark)...
 Sorting /home/________/Downloads/potm2310a.jpg...
-./benchmark elapsed: 94ms
+./benchmark elapsed: 1.068s
 Writing ./benchmark...
-0:00.51 real 0.45 usermode 99% 109428 Kb mem
+0:02.12 real 2.01 usermode 99% 215344 Kb mem
 ```
