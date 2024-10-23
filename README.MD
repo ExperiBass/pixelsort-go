@@ -51,18 +51,18 @@ did you know webb and hubble pics are cc4?
 "elapsed" is time spent actually sorting
 ```
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -o ./benchmark
-Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:60 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
-Loading image 1 ("/home/________/Downloads/potm2310a.jpg" -> "./benchmark")...
+Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:69 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
+Loading image 1 (/home/g________/Downloads/potm2310a.jpg -> ./benchmark)...
 Sorting /home/________/Downloads/potm2310a.jpg...
-./benchmark elapsed: 1.973s
+./benchmark elapsed: 163ms
 Writing ./benchmark...
-0:02.65 real 2.58 usermode 100% 88968 Kb mem
+0:00.21 real 0.20 usermode 99% 16144 Kb mem
 
 => time pixelsort_go -i ~/Downloads/potm2310a.jpg -m ./examples/mask.jpg -o ./benchmark
-Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:60 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
-Loading image 1 ("/home/________/Downloads/potm2310a.jpg" -> "./benchmark")...
+Sorting 1 images with a config of {Pattern:row Interval:row Comparator:lightness SectionLength:69 Randomness:1 Reverse:false Thresholds:{Lower:0 Upper:1} Angle:0}.
+Loading image 1 (/home/________/Downloads/potm2310a.jpg -> ./benchmark)...
 Sorting /home/________/Downloads/potm2310a.jpg...
-./benchmark elapsed: 986ms
+./benchmark elapsed: 92ms
 Writing ./benchmark...
-0:02.03 real 1.92 usermode 99% 215224 Kb mem
+0:00.46 real 0.41 usermode 99% 107328 Kb mem
 ```
