@@ -140,7 +140,7 @@ func main() {
 			},
 			&cli.Float64Flag{
 				Name:    "randomness",
-				Value:   0.5,
+				Value:   1,
 				Aliases: []string{"R"},
 				Usage:   "used to determine the perccentage of [row]s to skip and how wild [wave] edges should be, among other things",
 				Action: func(ctx *cli.Context, v float64) error {
