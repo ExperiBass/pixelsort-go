@@ -17,6 +17,7 @@ furst time using go, might be cursed
 ## wanted features
 - would like to mix and match thresholds (sort by red with saturation threshold, or sort by sat with darkness threshold)
 - more patterns; seam carving looks cool
+- completion? im lazy
 
 ## install
 ### from source
