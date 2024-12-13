@@ -22,7 +22,7 @@ furst time using go, might be cursed
 ## install
 ### from source
 ```sh
-git clone https://github.com/experibass/pixelsort-go.git
+git clone https://github.com/0xf0xx0/pixelsort-go.git
 cd pixelsort-go
 go build
 go install
