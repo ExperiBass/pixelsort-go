@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+
 	"pixelsort_go/types"
 )
 
@@ -157,6 +158,7 @@ func SaveSpiral(seams *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) 
 }
 
 // https://github.com/jeffThompson/PixelSorting/tree/master/SortThroughSeamCarving/SortThroughSeamCarving
+// TODO
 func LoadSeamCarving(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any) {
 	dims := img.Bounds()
 

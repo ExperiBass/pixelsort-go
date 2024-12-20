@@ -5,7 +5,7 @@ type PixelWithMask struct {
 	Mask       uint8
 }
 
-type Stretch struct {
+type PixelStretch struct {
 	Start int
 	End   int
 }

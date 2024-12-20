@@ -10,14 +10,15 @@ import (
 	"log"
 	"math"
 	"os"
-	"pixelsort_go/comparators"
-	"pixelsort_go/intervals"
-	"pixelsort_go/patterns"
-	"pixelsort_go/shared"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"time"
+
+	"pixelsort_go/comparators"
+	"pixelsort_go/intervals"
+	"pixelsort_go/patterns"
+	"pixelsort_go/shared"
 
 	"github.com/disintegration/imaging"
 	"github.com/remeh/sizedwaitgroup"
@@ -159,7 +160,7 @@ func main() {
 			&cli.BoolFlag{
 				Name:  "profile",
 				Value: false,
-				Usage: "use pprof to profile the program and spit out a .prof",
+				Usage: "use pprof to cpu profile the program and spit out a .prof",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
@@ -181,7 +182,7 @@ func main() {
 			/// profiling
 			if ctx.Bool("profile") {
 				masked := "unmasked"
-				if mask != "" || len(masks) > 0 {
+				if mask != "" {
 					masked = "masked"
 				}
 				profileFile, err := os.Create(fmt.Sprintf("cpuprofile-%s-%s-%s-%s.prof", shared.Config.Pattern, shared.Config.Interval, shared.Config.Comparator, masked))
@@ -417,14 +418,14 @@ func sortingTime(input, output, maskpath string) error {
 
 	/// spit the result out
 	if format == "jpeg" {
-			jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &jpeg.Options{
-				Quality: 100,
-			})
-		} else {
-			pngcoder := png.Encoder{
-				CompressionLevel: png.NoCompression,
-			}
-			pngcoder.Encode(f, outputImg)
+		jpeg.Encode(f, outputImg.SubImage(outputImg.Rect), &jpeg.Options{
+			Quality: 100,
+		})
+	} else {
+		pngcoder := png.Encoder{
+			CompressionLevel: png.NoCompression,
+		}
+		pngcoder.Encode(f, outputImg)
 	}
 	return nil
 }

@@ -3,10 +3,11 @@ package intervals
 import (
 	"math"
 	mathRand "math/rand"
+	"slices"
+
 	"pixelsort_go/comparators"
 	"pixelsort_go/shared"
 	"pixelsort_go/types"
-	"slices"
 )
 
 var SortingFunctionMappings = map[string]func([]types.PixelWithMask){
@@ -64,13 +65,13 @@ func Row(interval []types.PixelWithMask) {
 	if mathRand.Float32() > shared.Config.Randomness {
 		return
 	}
-	commonSort([]types.Stretch{{Start: 0, End: len(interval)}}, interval)
+	commonSort([]types.PixelStretch{{Start: 0, End: len(interval)}}, interval)
 }
 
 // takes a base length and multiplies by shared.Config.Randomness,
 // then picks a random int and picks the max between it and the previous product
 func Random(interval []types.PixelWithMask) {
-	stretches := make([]types.Stretch, 0)
+	stretches := make([]types.PixelStretch, 0)
 	intervalLength := len(interval)
 	section_length := shared.Config.SectionLength
 
@@ -82,7 +83,7 @@ func Random(interval []types.PixelWithMask) {
 		/// so many broken limbs, call me the cast fox
 		stretchLength := max(mathRand.Int(), int(math.Floor(float64(section_length)*float64(shared.Config.Randomness))))
 		endIdx := min(j+stretchLength, intervalLength)
-		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
+		stretches = append(stretches, types.PixelStretch{Start: j, End: endIdx})
 		j += stretchLength
 	}
 	commonSort(stretches, interval)
@@ -90,7 +91,7 @@ func Random(interval []types.PixelWithMask) {
 
 // takes a random chunk of the remaining pixels and sorts them
 func RandomNoisy(interval []types.PixelWithMask) {
-	stretches := make([]types.Stretch, 0)
+	stretches := make([]types.PixelStretch, 0)
 	intervalLength := len(interval)
 
 	j := 0
@@ -101,7 +102,7 @@ func RandomNoisy(interval []types.PixelWithMask) {
 		randLength := randBetween((intervalLength - j), 1)
 		if mathRand.Float32() < shared.Config.Randomness {
 			endIdx := min(j+randLength, intervalLength)
-			stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
+			stretches = append(stretches, types.PixelStretch{Start: j, End: endIdx})
 		}
 		j += randLength
 	}
@@ -111,7 +112,7 @@ func RandomNoisy(interval []types.PixelWithMask) {
 // sorts in "waves" across the interval
 // not very useful with complex masks
 func Wave(interval []types.PixelWithMask) {
-	stretches := make([]types.Stretch, 0)
+	stretches := make([]types.PixelStretch, 0)
 	intervalLength := len(interval)
 	baseLength := shared.Config.SectionLength
 
@@ -129,7 +130,7 @@ func Wave(interval []types.PixelWithMask) {
 
 		/// now add to stretches
 		endIdx := min(j+waveLength, intervalLength)
-		stretches = append(stretches, types.Stretch{Start: j, End: endIdx})
+		stretches = append(stretches, types.PixelStretch{Start: j, End: endIdx})
 		j += waveLength
 	}
 	commonSort(stretches, interval)
@@ -152,7 +153,7 @@ func randBetween(max int, min_opt ...int) int {
 	return int(math.Floor(randNum * float64((+max)+1)))
 }
 
-func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
+func commonSort(stretches []types.PixelStretch, interval []types.PixelWithMask) {
 	for stretchIdx := 0; stretchIdx < len(stretches); stretchIdx++ {
 		stretch := stretches[stretchIdx]
 		/// grab the pixels we want
@@ -177,8 +178,8 @@ func commonSort(stretches []types.Stretch, interval []types.PixelWithMask) {
 }
 
 // select all pixels not masked off
-func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
-	stretches := make([]types.Stretch, 0)
+func getUnmaskedStretches(interval []types.PixelWithMask) []types.PixelStretch {
+	stretches := make([]types.PixelStretch, 0)
 	baseIdx := 0
 
 	for j := 0; j < len(interval); j++ {
@@ -197,7 +198,7 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 				endMaskIdx++
 			}
 
-			stretch := types.Stretch{Start: baseIdx, End: j}
+			stretch := types.PixelStretch{Start: baseIdx, End: j}
 			stretches = append(stretches, stretch)
 
 			/// jump past the mask and continue
@@ -206,6 +207,6 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.Stretch {
 		}
 	}
 	/// and then add any remaning unmasked pixels
-	stretches = append(stretches, types.Stretch{Start: baseIdx, End: len(interval)})
+	stretches = append(stretches, types.PixelStretch{Start: baseIdx, End: len(interval)})
 	return stretches
 }
