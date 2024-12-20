@@ -10,17 +10,6 @@ type PixelStretch struct {
 	End   int
 }
 
-type SortConfig struct {
-	Pattern       string
-	Interval      string
-	Comparator    string
-	SectionLength int
-	Randomness    float32
-	Reverse       bool
-	Thresholds    ThresholdConfig
-	Angle         float64
-}
-
 type ThresholdConfig struct {
 	Lower, Upper float32
 }

@@ -158,10 +158,10 @@ func commonSort(stretches []types.PixelStretch, interval []types.PixelWithMask) 
 		stretch := stretches[stretchIdx]
 		/// grab the pixels we want
 		pixels := interval[stretch.Start:stretch.End]
-
+		jInit := len(pixels) - 1
 		if shared.Config.Reverse {
 			/// do a flip!
-			for i, j := 0, len(pixels)-1; i < j; i, j = i+1, j-1 {
+			for i, j := 0, jInit; i < j; i, j = i+1, j-1 {
 				pixels[i], pixels[j] = pixels[j], pixels[i]
 			}
 		}
@@ -170,7 +170,7 @@ func commonSort(stretches []types.PixelStretch, interval []types.PixelWithMask) 
 
 		if shared.Config.Reverse {
 			/// [/unflip]
-			for i, j := 0, len(pixels)-1; i < j; i, j = i+1, j-1 {
+			for i, j := 0, jInit; i < j; i, j = i+1, j-1 {
 				pixels[i], pixels[j] = pixels[j], pixels[i]
 			}
 		}
@@ -181,15 +181,16 @@ func commonSort(stretches []types.PixelStretch, interval []types.PixelWithMask) 
 func getUnmaskedStretches(interval []types.PixelWithMask) []types.PixelStretch {
 	stretches := make([]types.PixelStretch, 0)
 	baseIdx := 0
+	intervalLen := len(interval)
 
-	for j := 0; j < len(interval); j++ {
+	for j := 0; j < intervalLen; j++ {
 		pixel := interval[j]
 		/// if masked off, or nil
 		if pixel.Mask == 255 || (pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0) {
 			/// look ahead for the end of the mask
 			endMaskIdx := j
 			for {
-				if endMaskIdx >= len(interval) {
+				if endMaskIdx >= intervalLen {
 					break
 				}
 				if interval[endMaskIdx].Mask != 255 || !(pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0) {
@@ -207,6 +208,8 @@ func getUnmaskedStretches(interval []types.PixelWithMask) []types.PixelStretch {
 		}
 	}
 	/// and then add any remaning unmasked pixels
-	stretches = append(stretches, types.PixelStretch{Start: baseIdx, End: len(interval)})
+	if baseIdx < intervalLen {
+		stretches = append(stretches, types.PixelStretch{Start: baseIdx, End: intervalLen})
+	}
 	return stretches
 }
