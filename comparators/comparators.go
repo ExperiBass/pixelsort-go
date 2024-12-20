@@ -17,7 +17,7 @@ var ComparatorFunctionMappings = map[string]types.ComparatorFunc{
 }
 
 func Red(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -25,7 +25,7 @@ func Red(a, b types.PixelWithMask) int {
 }
 
 func Green(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -33,7 +33,7 @@ func Green(a, b types.PixelWithMask) int {
 }
 
 func Blue(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -41,7 +41,7 @@ func Blue(a, b types.PixelWithMask) int {
 }
 
 func Hue(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -52,7 +52,7 @@ func Hue(a, b types.PixelWithMask) int {
 }
 
 func Saturation(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -64,7 +64,7 @@ func Saturation(a, b types.PixelWithMask) int {
 }
 
 func Lightness(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -75,7 +75,7 @@ func Lightness(a, b types.PixelWithMask) int {
 }
 
 func Max(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -84,7 +84,7 @@ func Max(a, b types.PixelWithMask) int {
 	return aMax - bMax
 }
 func Min(a, b types.PixelWithMask) int {
-	if checkPixel(a) || checkPixel(b) {
+	if skipPixel(a) || skipPixel(b) {
 		return 0
 	}
 
@@ -93,7 +93,7 @@ func Min(a, b types.PixelWithMask) int {
 	return aMin - bMin
 }
 
-func checkPixel(pixel types.PixelWithMask) bool {
+func skipPixel(pixel types.PixelWithMask) bool {
 	/// skip if masked
 	if pixel.Mask == 255 {
 		return true
@@ -102,19 +102,19 @@ func checkPixel(pixel types.PixelWithMask) bool {
 	if pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && pixel.A == 0 {
 		return true
 	}
-	/// skip if beyond thresholds
+	/// and if beyond thresholds
 	/// FIXME: figure out why thresholds with spiral results in holes in the image
 	lightness := calculateLightness(pixel)
-	if lightness < shared.Config.Thresholds.Lower * 255 || lightness > shared.Config.Thresholds.Upper * 255 {
+	if lightness < shared.Config.Thresholds.Lower*255 || lightness > shared.Config.Thresholds.Upper*255 {
 		return true
 	}
 	return false
 }
+
 func calculateLightness(pixel types.PixelWithMask) float32 {
 	// 299, 587, 114
-	return float32(pixel.R) * 0.29 + float32(pixel.G) * 0.59 + float32(pixel.B) * 0.11
+	return float32(pixel.R)*0.29 + float32(pixel.G)*0.59 + float32(pixel.B)*0.11
 }
-
 func calculateHue(pixel types.PixelWithMask) float32 {
 	hue := float32(0)
 	maxV := max(pixel.R, pixel.G, pixel.B)
