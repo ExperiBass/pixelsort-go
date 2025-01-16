@@ -159,12 +159,12 @@ func commonSort(stretches []types.PixelStretch, interval []types.PixelWithMask) 
 		/// grab the pixels we want
 		pixels := interval[stretch.Start:stretch.End]
 		jInit := len(pixels) - 1
-		if shared.Config.Reverse {
-			/// do a flip!
-			for i, j := 0, jInit; i < j; i, j = i+1, j-1 {
-				pixels[i], pixels[j] = pixels[j], pixels[i]
-			}
-		}
+		// if shared.Config.Reverse {
+		// 	/// do a flip!
+		// 	for i, j := 0, jInit; i < j; i, j = i+1, j-1 {
+		// 		pixels[i], pixels[j] = pixels[j], pixels[i]
+		// 	}
+		// }
 		comparator := comparators.ComparatorFunctionMappings[shared.Config.Comparator]
 		slices.SortStableFunc(pixels, comparator)
 

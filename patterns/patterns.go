@@ -1,6 +1,7 @@
 package patterns
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -64,37 +65,34 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 
 	seams := make([][]types.PixelWithMask, 0)
 
-	max := int(math.Min(float64(height), float64(width)))/2
+	max := int(math.Min(float64(height), float64(width))) / 2
 	for offset := 0; offset <= max; offset++ {
 		seam := make([]types.PixelWithMask, 0)
 
-		for x := offset; x < width-offset; x++ {
-			topOffset := (offset*width + x) * 4
-			top := img.Pix[topOffset : topOffset+4]
-			topMask := mask.Pix[topOffset]
+		top := offset
+		bottom := height - offset -1
+		left := offset
+		right := width - offset-1
 
-			bottomOffset := ((height-offset-1)*width + x) * 4
-			bottom := img.Pix[bottomOffset : bottomOffset+4]
-			bottomMask := mask.Pix[bottomOffset]
-
-			seam = append(seam, types.PixelWithMask{R: top[0], G: top[1], B: top[2], A: top[3], Mask: topMask})
-			if offset < max {
-				seam = append(seam, types.PixelWithMask{R: bottom[0], G: bottom[1], B: bottom[2], A: bottom[3], Mask: bottomMask})
-			}
+		/// right
+		for x := left; x <= right; x++ {
+			pixel := img.RGBAAt(x, top)
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
 		}
-
-		// right & left
-		for y := offset + 1; y < height-offset-1; y++ {
-			rightOffset := (y*width + offset) * 4
-			right := img.Pix[rightOffset : rightOffset+4]
-			rightMask := mask.Pix[rightOffset]
-
-			leftOffset := (y*width + (width-offset)) * 4
-			left := img.Pix[leftOffset : leftOffset+4]
-			leftMask := mask.Pix[leftOffset]
-
-			seam = append(seam, types.PixelWithMask{R: right[0], G: right[1], B: right[2], A: right[3], Mask: rightMask})
-			seam = append(seam, types.PixelWithMask{R: left[0], G: left[1], B: left[2], A: left[3], Mask: leftMask})
+		/// down
+		for y := top+1; y <= bottom; y++ {
+			pixel := img.RGBAAt(right, y)
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+		}
+		/// left
+		for x := right-1; x > left; x-- {
+			pixel := img.RGBAAt(x, bottom)
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+		}
+		/// up
+		for y := bottom; y > top; y-- {
+			pixel := img.RGBAAt(left, y)
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
 		}
 
 		seams = append(seams, seam)
@@ -108,52 +106,33 @@ func SaveSpiral(seams *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) 
 	width := dims.Max.X
 	height := dims.Max.Y
 
-	for offset := 0; offset < height/2; offset++ {
-		seam := (*seams)[offset]
-		index := 0
+	max := int(math.Min(float64(height), float64(width))) / 2
+	for offset := 0; offset <= max; offset++ {
+		top := offset
+		bottom := height - offset -1
+		left := offset
+		right := width - offset-1
 
-		// top
-		for x := offset; x < width-offset; x++ {
-			idx := (offset*width + x) * 4
-			pixel := seam[index]
-			outputImg.Pix[idx] = pixel.R
-			outputImg.Pix[idx+1] = pixel.G
-			outputImg.Pix[idx+2] = pixel.B
-			outputImg.Pix[idx+3] = pixel.A
-			index++
+		fmt.Print()
+		/// right
+		for x := left; x <= right; x++ {
+			pixel := (*seams)[top][x].ToColor()
+			outputImg.Set(x, top, pixel)
 		}
-
-		// right
-		for y := offset + 1; y < height-offset-1; y++ {
-			idx := (y*width + width - offset) * 4
-			pixel := seam[index]
-			outputImg.Pix[idx] = pixel.R
-			outputImg.Pix[idx+1] = pixel.G
-			outputImg.Pix[idx+2] = pixel.B
-			outputImg.Pix[idx+3] = pixel.A
-			index++
+		/// down
+		for y := top+1; y < bottom; y++ {
+			pixel := (*seams)[y][right-1].ToColor()
+			outputImg.Set(right, y, pixel)
 		}
-
-		// bottom
-		for x := width - offset - 1; x >= offset; x-- {
-			idx := ((height-offset-1)*width + x) * 4
-			pixel := seam[index]
-			outputImg.Pix[idx] = pixel.R
-			outputImg.Pix[idx+1] = pixel.G
-			outputImg.Pix[idx+2] = pixel.B
-			outputImg.Pix[idx+3] = pixel.A
-			index++
+		/// left
+		for x := right-1; x > left; x-- {
+			pixel := (*seams)[bottom][x].ToColor()
+			outputImg.Set(x, bottom, pixel)
 		}
-
-		// left
-		for y := height - offset - 2; y > offset+1; y-- {
-			idx := (y*width + offset) * 4
-			pixel := seam[index]
-			outputImg.Pix[idx] = pixel.R
-			outputImg.Pix[idx+1] = pixel.G
-			outputImg.Pix[idx+2] = pixel.B
-			outputImg.Pix[idx+3] = pixel.A
-			index++
+		/// up
+		for y := bottom; y > top; y-- {
+			pixel := (*seams)[y][left].ToColor()
+			outputImg.Set(left, y, pixel)
 		}
 	}
 

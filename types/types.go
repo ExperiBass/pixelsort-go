@@ -15,6 +15,15 @@ func (pixel PixelWithMask) ToColor() color.RGBA {
         A: pixel.A,
     }
 }
+func PixelWithMaskFromColor(color color.RGBA, mask uint8) PixelWithMask {
+    return PixelWithMask{
+        R:    color.R,
+        G:    color.G,
+        B:    color.B,
+        A:    color.A,
+        Mask: mask,
+    }
+}
 
 type PixelStretch struct {
 	Start int
