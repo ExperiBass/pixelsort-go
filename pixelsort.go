@@ -388,8 +388,8 @@ func sortingTime(input, output, maskpath string) error {
 	/// pass the rows to the sorter
 	start := time.Now()
 	for i := 0; i < len(*stretches); i++ {
-		//row := (*stretches)[i]
-		//intervals.Sort(row)
+		row := (*stretches)[i]
+		intervals.Sort(row)
 	}
 	end := time.Now()
 	elapsed := end.Sub(start)

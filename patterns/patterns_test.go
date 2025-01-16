@@ -52,22 +52,24 @@ func TestLoadSpiral(t *testing.T) {
 	}
 
 	// expected := []uint8{
-	// 	0,0,0,0, 255,0,255,255, 255,255,0,255,
-	// 	0,255,255,255, 255,255,255,255, 0,255,255,255,
-	// 	0,0,0,0, 0,0,0,0, 255,255,0,255,
+	// 	0,0,0,0, 0,0,0,0, 255,0,255,255,
+	//  0,255,255,255, 255,255,0,255, 255,255,0,255,
+	//  0,0,0,0, 0,255,255,255, 255,255,0,255
 	// }
 	expected := [][]types.PixelWithMask{
 		[]types.PixelWithMask{
 			types.PixelWithMask{R:0,G:0,B:0,A:0,Mask:0},
+			types.PixelWithMask{R:0,G:0,B:0,A:0,Mask:0},
 			types.PixelWithMask{R:255,G:0,B:255,A:255,Mask:0},
+
+			types.PixelWithMask{R:0,G:255,B:255,A:255,Mask:0},
+			types.PixelWithMask{R:255,G:255,B:0,A:255,Mask:0},
 			types.PixelWithMask{R:255,G:255,B:0,A:255,Mask:0},
 
-			types.PixelWithMask{R:0,G:255,B:255,A:255,Mask:0},
-			types.PixelWithMask{R:255,G:255,B:255,A:255,Mask:0},
-			types.PixelWithMask{R:0,G:255,B:255,A:255,Mask:0},
-
 			types.PixelWithMask{R:0,G:0,B:0,A:0,Mask:0},
-			types.PixelWithMask{R:0,G:0,B:0,A:0,Mask:0},
+			types.PixelWithMask{R:0,G:255,B:255,A:255,Mask:0},
+		},
+		[]types.PixelWithMask{
 			types.PixelWithMask{R:255,G:255,B:0,A:255,Mask:0},
 		},
 	}
@@ -79,7 +81,7 @@ func TestLoadSpiral(t *testing.T) {
 	}
 	slices, _ := patterns.LoadSpiral(input, mask)
 	fmt.Println(expected)
-	fmt.Println(slices)
+	fmt.Println(*slices)
 	for i := range *slices {
 		slice := (*slices)[i]
 		for ii := range slice {
@@ -89,7 +91,7 @@ func TestLoadSpiral(t *testing.T) {
 			}
 		}
 	}
-	//res := patterns.SaveSpiral(slices, input.Rect)
+	// res := patterns.SaveSpiral(slices, input.Rect)
 	// fmt.Println(input.Pix)
 	// fmt.Println(res.Pix)
 	// for idx := range input.Pix {
