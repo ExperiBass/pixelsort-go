@@ -64,8 +64,8 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 
 	seams := make([][]types.PixelWithMask, 0)
 
-	for offset := 0; offset < int(math.Min(float64(height), float64(width)))/2; offset++ {
-
+	max := int(math.Min(float64(height), float64(width)))/2
+	for offset := 0; offset <= max; offset++ {
 		seam := make([]types.PixelWithMask, 0)
 
 		for x := offset; x < width-offset; x++ {
@@ -78,7 +78,9 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 			bottomMask := mask.Pix[bottomOffset]
 
 			seam = append(seam, types.PixelWithMask{R: top[0], G: top[1], B: top[2], A: top[3], Mask: topMask})
-			seam = append(seam, types.PixelWithMask{R: bottom[0], G: bottom[1], B: bottom[2], A: bottom[3], Mask: bottomMask})
+			if offset < max {
+				seam = append(seam, types.PixelWithMask{R: bottom[0], G: bottom[1], B: bottom[2], A: bottom[3], Mask: bottomMask})
+			}
 		}
 
 		// right & left

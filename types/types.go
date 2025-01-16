@@ -1,8 +1,19 @@
 package types
 
+import "image/color"
+
+
 type PixelWithMask struct {
 	R, G, B, A uint8
 	Mask       uint8
+}
+func (pixel PixelWithMask) ToColor() color.RGBA {
+    return color.RGBA{
+        R: pixel.R,
+        G: pixel.G,
+        B: pixel.B,
+        A: pixel.A,
+    }
 }
 
 type PixelStretch struct {
