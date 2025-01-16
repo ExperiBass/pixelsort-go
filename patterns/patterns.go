@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 
 	"pixelsort_go/types"
 )
@@ -63,7 +64,7 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 
 	seams := make([][]types.PixelWithMask, 0)
 
-	for offset := 0; offset < height/2; offset++ {
+	for offset := 0; offset < int(math.Min(float64(height), float64(width)))/2; offset++ {
 
 		seam := make([]types.PixelWithMask, 0)
 
@@ -86,7 +87,7 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 			right := img.Pix[rightOffset : rightOffset+4]
 			rightMask := mask.Pix[rightOffset]
 
-			leftOffset := (y*width + width - offset) * 4
+			leftOffset := (y*width + (width-offset)) * 4
 			left := img.Pix[leftOffset : leftOffset+4]
 			leftMask := mask.Pix[leftOffset]
 
