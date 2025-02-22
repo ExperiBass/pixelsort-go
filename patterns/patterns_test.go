@@ -53,14 +53,14 @@ func TestArdenLoadSpiral(t *testing.T) {
 	}
 
 	/// compare input and output (should be equal)
-	// res := patterns.SaveSpiral(actual, input.Rect)
-	// for y := 0; y < HEIGHT; y++ {
-	// 	for x := 0; x < WIDTH; x++ {
-	// 		inPix := input.At(x, y)
-	// 		outPix := res.At(x, y)
-	// 		if inPix != outPix {
-	// 			t.Errorf("pixel (%d,%d) differs from input:\nexpected: %v\nactual:  %v", x,y,inPix,outPix)
-	// 		}
-	// 	}
-	// }
+	res := patterns.SaveSpiral(actual, input.Rect)
+	for y := 0; y < HEIGHT; y++ {
+		for x := 0; x < WIDTH; x++ {
+			inPix := input.At(x, y)
+			outPix := res.At(x, y)
+			if inPix != outPix {
+				t.Errorf("pixel (%d,%d) differs from input:\nexpected: %v\nactual:  %v", x,y,inPix,outPix)
+			}
+		}
+	}
 }

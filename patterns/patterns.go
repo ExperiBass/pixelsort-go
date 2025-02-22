@@ -52,12 +52,9 @@ func SaveRow(rows *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) *ima
 	return outputImg
 }
 
-// https://github.com/jeffThompson/PixelSorting/blob/master/SpiralSortPixels/SpiralSortPixels.pde
-// prayge, i'm not a mathy fomx
-// this also only half-works; when giving a mask, or skipping the sorting step, the image comes out
-// missing half its pixels in all but one direction (usually the left side) and the
-// remaining three parts are flipped
-// only on images with even dimensions tho!!!! wheeeee!!!!!!!!!
+/// based on https://github.com/jeffThompson/PixelSorting/blob/master/SpiralSortPixels/SpiralSortPixels.pde
+/// prayge, i'm not a mathy fomx
+/// lots of help from fren fixing it
 func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, any) {
 	dims := img.Bounds().Max
 	width := dims.X
@@ -77,22 +74,26 @@ func LoadSpiral(img *image.RGBA, mask *image.RGBA) (*[][]types.PixelWithMask, an
 		/// right
 		for x := left; x <= right; x++ {
 			pixel := img.RGBAAt(x, top)
-			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+			maskVal := mask.RGBAAt(x, top).R
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, maskVal))
 		}
 		/// down
 		for y := top+1; y <= bottom; y++ {
 			pixel := img.RGBAAt(right, y)
-			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+			maskVal := mask.RGBAAt(right, y).R
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, maskVal))
 		}
 		/// left
 		for x := right-1; x > left; x-- {
 			pixel := img.RGBAAt(x, bottom)
-			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+			maskVal := mask.RGBAAt(x, bottom).R
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, maskVal))
 		}
 		/// up
 		for y := bottom; y > top; y-- {
 			pixel := img.RGBAAt(left, y)
-			seam = append(seam, types.PixelWithMaskFromColor(pixel, 0))
+			maskVal := mask.RGBAAt(left, y).R
+			seam = append(seam, types.PixelWithMaskFromColor(pixel, maskVal))
 		}
 
 		seams = append(seams, seam)
@@ -106,33 +107,33 @@ func SaveSpiral(seams *[][]types.PixelWithMask, dims image.Rectangle, _ ...any) 
 	width := dims.Max.X
 	height := dims.Max.Y
 
-	max := int(math.Min(float64(height), float64(width))) / 2
-	for offset := 0; offset <= max; offset++ {
+	for offset, seam := range *seams {
 		top := offset
 		bottom := height - offset -1
 		left := offset
 		right := width - offset-1
+		currPixIdx := 0
 
 		fmt.Print()
 		/// right
 		for x := left; x <= right; x++ {
-			pixel := (*seams)[top][x].ToColor()
-			outputImg.Set(x, top, pixel)
+			outputImg.Set(x, top, seam[currPixIdx].ToColor())
+			currPixIdx++
 		}
 		/// down
-		for y := top+1; y < bottom; y++ {
-			pixel := (*seams)[y][right-1].ToColor()
-			outputImg.Set(right, y, pixel)
+		for y := top+1; y <= bottom; y++ {
+			outputImg.Set(right, y, seam[currPixIdx].ToColor())
+			currPixIdx++
 		}
 		/// left
 		for x := right-1; x > left; x-- {
-			pixel := (*seams)[bottom][x].ToColor()
-			outputImg.Set(x, bottom, pixel)
+			outputImg.Set(x, bottom, seam[currPixIdx].ToColor())
+			currPixIdx++
 		}
 		/// up
 		for y := bottom; y > top; y-- {
-			pixel := (*seams)[y][left].ToColor()
-			outputImg.Set(left, y, pixel)
+			outputImg.Set(left, y, seam[currPixIdx].ToColor())
+			currPixIdx++
 		}
 	}
 
