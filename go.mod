@@ -5,7 +5,7 @@ go 1.21.1
 require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/remeh/sizedwaitgroup v1.0.0
-	github.com/urfave/cli/v2 v2.27.4
+	github.com/urfave/cli/v2 v2.27.5
 )
 
 require (
